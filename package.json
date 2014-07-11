@@ -1,0 +1,45 @@
+{
+  "name": "gulp-html-i18n",
+  "version": "0.0.1",
+  "description": "Html i18n",
+  "keywords": [
+    "amd",
+    "dependency",
+    "gulpplugin"
+  ],
+  "homepage": "https://github.com/webyom/gulp-html-i18n",
+  "author": {
+    "name": "Gary Wang",
+    "email": "webyom@gmail.com",
+    "url": "http://webyom.org"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/webyom/gulp-html-i18n.git"
+  },
+  "bugs": {
+    "url": "https://github.com/webyom/gulp-html-i18n/issues"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/webyom/gulp-html-i18n/blob/master/LICENSE-MIT"
+    }
+  ],
+  "main": "lib/index.js",
+  "engines": {
+    "node": ">= 0.8.0"
+  },
+  "scripts": {
+  },
+  "dependencies": {
+    "q": "^1.0.1",
+    "async": "^0.9.0",
+    "gulp-util": "^2.2.19",
+    "through2": "^0.5.1"
+  },
+  "devDependencies": {
+    "gulp": "^3.8.5",
+    "gulp-coffee": "^2.0.1"
+  }
+}
