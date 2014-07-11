@@ -14,7 +14,7 @@ getProperty = (propName, properties) ->
 		res = res[tmp.shift()]
 	res
 
-replaceProperties = (content, properties, lv) ->
+replaceProperties = (content, lang, properties, lv) ->
 	lv = lv || 1
 	if not properties
 		return content
@@ -26,8 +26,9 @@ replaceProperties = (content, properties, lv) ->
 			if lv > 3
 				res = '**' + propName + '**'
 			else
-				res = replaceProperties res, properties, lv + 1
+				res = replaceProperties res, lang, properties, lv + 1
 		res
+	content.replace /\%{{_lang_}}\%/g, lang
 
 getLangResource = (->
 	define = ->
@@ -109,7 +110,7 @@ module.exports = (opt = {}) ->
 				langResource.LANG_LIST.forEach (lang) =>
 					newFilePath = file.path.replace /\.src\.html$/, '\.html'
 					newFilePath = gutil.replaceExtension newFilePath, seperator + lang + '.html'
-					content = replaceProperties file.contents.toString('utf8'), langResource[lang]
+					content = replaceProperties file.contents.toString('utf8'), lang, langResource[lang]
 					newFile = new gutil.File
 						base: file.base
 						cwd: file.cwd
