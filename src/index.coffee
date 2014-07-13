@@ -106,17 +106,22 @@ module.exports = (opt = {}) ->
 		return @emit 'error', new gutil.PluginError('gulp-html-i18n', 'Streams not supported') if file.isStream()
 		getLangResource(langDir).then(
 			(langResource) =>
-				langResource.LANG_LIST.forEach (lang) =>
-					newFilePath = file.path.replace /\.src\.html$/, '\.html'
-					newFilePath = gutil.replaceExtension newFilePath, seperator + lang + '.html'
-					content = replaceProperties file.contents.toString('utf8'), langResource[lang]
-					newFile = new gutil.File
-						base: file.base
-						cwd: file.cwd
-						path: newFilePath
-						contents: new Buffer content
-					newFile._lang_ = lang
-					@push newFile
+				if file._lang_
+					content = replaceProperties file.contents.toString('utf8'), langResource[file._lang_]
+					file.contents = new Buffer content
+					@push file
+				else
+					langResource.LANG_LIST.forEach (lang) =>
+						newFilePath = file.path.replace /\.src\.html$/, '\.html'
+						newFilePath = gutil.replaceExtension newFilePath, seperator + lang + '.html'
+						content = replaceProperties file.contents.toString('utf8'), langResource[lang]
+						newFile = new gutil.File
+							base: file.base
+							cwd: file.cwd
+							path: newFilePath
+							contents: new Buffer content
+						newFile._lang_ = lang
+						@push newFile
 				next()
 			(err) =>
 				@emit 'error', new gutil.PluginError('gulp-html-i18n', err)
