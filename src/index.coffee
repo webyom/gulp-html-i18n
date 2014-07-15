@@ -44,7 +44,7 @@ getLangResource = (->
 	getResourceFile = (filePath) ->
 		if path.extname(filePath) is '.js'
 			try
-				res = eval fs.readFileSync(filePath).toString 'utf8'
+				res = eval fs.readFileSync(filePath).toString()
 			catch
 				throw new Error 'Language file "' + filePath + '" syntax error! - ' + e.toString()
 			if typeof res is 'function'
@@ -107,14 +107,14 @@ module.exports = (opt = {}) ->
 		getLangResource(langDir).then(
 			(langResource) =>
 				if file._lang_
-					content = replaceProperties file.contents.toString('utf8'), langResource[file._lang_]
+					content = replaceProperties file.contents.toString(), langResource[file._lang_]
 					file.contents = new Buffer content
 					@push file
 				else
 					langResource.LANG_LIST.forEach (lang) =>
 						newFilePath = file.path.replace /\.src\.html$/, '\.html'
 						newFilePath = gutil.replaceExtension newFilePath, seperator + lang + '.html'
-						content = replaceProperties file.contents.toString('utf8'), langResource[lang]
+						content = replaceProperties file.contents.toString(), langResource[lang]
 						newFile = new gutil.File
 							base: file.base
 							cwd: file.cwd
