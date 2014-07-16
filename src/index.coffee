@@ -5,6 +5,8 @@ async = require 'async'
 gutil = require 'gulp-util'
 through = require 'through2'
 
+EOL = '\n'
+
 langRegExp = /\${{([\w\-\.]+)}}\$/g
 
 getProperty = (propName, properties) ->
@@ -115,6 +117,8 @@ module.exports = (opt = {}) ->
 						newFilePath = file.path.replace /\.src\.html$/, '\.html'
 						newFilePath = gutil.replaceExtension newFilePath, seperator + lang + '.html'
 						content = replaceProperties file.contents.toString(), langResource[lang]
+						if opt.trace
+							content = content.replace /(<body[^>]*>)/i, '$1' + EOL + '<!-- trace:' + path.relative(process.cwd(), file.path) + ' -->'
 						newFile = new gutil.File
 							base: file.base
 							cwd: file.cwd
