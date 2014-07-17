@@ -61,8 +61,9 @@ getLangResource = (->
 				async.each(
 					fileList
 					(filePath, cb) ->
-						filePath = path.resolve langDir, filePath
-						res[path.basename(filePath).replace(/\.js$/, '')] = getResourceFile filePath
+						if path.extname(filePath) is '.js'
+							filePath = path.resolve langDir, filePath
+							res[path.basename(filePath).replace(/\.js$/, '')] = getResourceFile filePath
 						cb()
 					(err) ->
 						return reject err if err
@@ -80,6 +81,7 @@ getLangResource = (->
 			async.each(
 				langList
 				(langDir, cb) ->
+					return cb() if langDir.indexOf('.') is 0
 					langDir = path.resolve dir, langDir
 					langCode = path.basename langDir
 					if fs.statSync(langDir).isDirectory()
