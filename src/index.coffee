@@ -116,17 +116,23 @@ module.exports = (opt = {}) ->
 					@push file
 				else
 					langResource.LANG_LIST.forEach (lang) =>
-						newFilePath = file.path.replace /\.src\.html$/, '\.html'
+						originPath = file.path
+						newFilePath = originPath.replace /\.src\.html$/, '\.html'
 						newFilePath = gutil.replaceExtension newFilePath, seperator + lang + '.html'
 						content = replaceProperties file.contents.toString(), langResource[lang]
 						if opt.trace
-							content = content.replace /(<body[^>]*>)/i, '$1' + EOL + '<!-- trace:' + path.relative(process.cwd(), file.path) + ' -->'
+							trace = '<!-- trace:' + path.relative(process.cwd(), originPath) + ' -->'
+							if (/(<body[^>]*>)/i).test content
+								content = content.replace /(<body[^>]*>)/i, '$1' + EOL + trace
+							else
+								content = trace + EOL + content
 						newFile = new gutil.File
 							base: file.base
 							cwd: file.cwd
 							path: newFilePath
 							contents: new Buffer content
 						newFile._lang_ = lang
+						newFile._originPath_ = originPath
 						@push newFile
 				next()
 			(err) =>
