@@ -47,7 +47,7 @@ getLangResource = (->
 		if path.extname(filePath) is '.js'
 			try
 				res = eval fs.readFileSync(filePath).toString()
-			catch
+			catch e
 				throw new Error 'Language file "' + filePath + '" syntax error! - ' + e.toString()
 			if typeof res is 'function'
 				res = res()
