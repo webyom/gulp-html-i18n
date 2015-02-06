@@ -46,11 +46,11 @@ Output:
 
     <html>
       <body>
-        <h1>${{ index.heading }}$</h1>
+        <h1>Welcome!</h1>
         <div>
           <!-- Website content -->
         </div>
-        <div>${{ index.footer }}$</div>
+        <div>Copyright 2015</div>
       <body>
     </html>
 
