@@ -8,20 +8,24 @@ Internationalize your HTML files with [gulp](http://gulpjs.com/)!
 ### JS
 Given the following in a file named: `lang/en-US/index.js`
 
-    define({
-      heading: "Welcome!",
-      footer:  "Copyright 2015"
-    };
+```js
+define({
+  heading: "Welcome!",
+  footer:  "Copyright 2015"
+};
+```
 
 `gulp-html-i18n` will produce an object called `index`. You can then use `index.heading` to get a result of "Welcome!".
 
 ### JSON
 Given the following in a file named: `lang/en-US/index.json`
 
-    {
-      "heading": "Welcome!",
-      "footer":  "Copyright 2015"
-    }
+```json
+{
+  "heading": "Welcome!",
+  "footer":  "Copyright 2015"
+}
+```
 
 `gulp-html-i18n` will produce an object called `index`. You can then use `index.heading` to get a result of "Welcome!".
 
@@ -32,27 +36,31 @@ To use either of the examples from above, replace the text in your HTML files wi
 
 Initial:
 
-    <html>
-      <body>
-        <h1>${{ index.heading }}$</h1>
-        <div>
-          <!-- Website content -->
-        </div>
-        <div>${{ index.footer }}$</div>
-      <body>
-    </html>
+```html
+<html>
+  <body>
+    <h1>${{ index.heading }}$</h1>
+    <div>
+      <!-- Website content -->
+    </div>
+    <div>${{ index.footer }}$</div>
+  <body>
+</html>
+```
 
 Output:
 
-    <html>
-      <body>
-        <h1>Welcome!</h1>
-        <div>
-          <!-- Website content -->
-        </div>
-        <div>Copyright 2015</div>
-      <body>
-    </html>
+```html
+<html>
+  <body>
+    <h1>Welcome!</h1>
+    <div>
+      <!-- Website content -->
+    </div>
+    <div>Copyright 2015</div>
+  <body>
+</html>
+```
 
 ## Gulp Usage
 
