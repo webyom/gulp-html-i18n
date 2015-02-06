@@ -66,17 +66,19 @@ Output:
 
 The following task:
 
-    gulp.task('build:localize', function() {
-      var dest  = './public';
-      var index = './index.html';
+```js
+gulp.task('build:localize', function() {
+  var dest  = './public';
+  var index = './index.html';
 
-      return gulp.src(index)
-        .pipe(i18n({
-          langDir: './lang',
-          trace: true
-        }))
-        .pipe(gulp.dest(dest));
-    });
+  return gulp.src(index)
+    .pipe(i18n({
+      langDir: './lang',
+      trace: true
+    }))
+    .pipe(gulp.dest(dest));
+});
+```
 
 will compile `index.html` to `public/index-{lang}.html` for each langugage you define in `./lang`.
 
