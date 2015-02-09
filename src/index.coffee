@@ -64,30 +64,40 @@ getLangResource = (->
       else if path.extname(filePath) is '.json'
         res = getJSONResource(filePath)
     catch e
-        throw new Error 'Language file "' + filePath + '" syntax error! - ' + e.toString()
-      if typeof res is 'function'
-        res = res()
+      throw new Error 'Language file "' + filePath + '" syntax error! - ' +
+        e.toString()
+    if typeof res is 'function'
+      res = res()
     res
 
+  # Interpret the string contents of a JS file as a resource object
   getJsResource = (filePath) ->
     res = eval(fs.readFileSync(filePath).toString())
-    res = res() if (typeof res === 'function')
+    res = res() if (typeof res == 'function')
     res
 
+  # Parse a JSON file into a resource object
   getJSONResource = (filePath) ->
     define(JSON.parse(fs.readFileSync(filePath).toString()))
 
+  #
+  # Load a resource file into a dictionary named after the file
+  #
+  # e.g. foo.json will create a resource named foo
+  #
   getResource = (langDir) ->
     Q.Promise (resolve, reject) ->
       if fs.statSync(langDir).isDirectory()
         res = {}
         fileList = fs.readdirSync langDir
+
         async.each(
           fileList
           (filePath, cb) ->
-            if path.extname(filePath) is '.js'
+            if path.extname(filePath) in supportedType
               filePath = path.resolve langDir, filePath
-              res[path.basename(filePath).replace(/\.js$/, '')] = getResourceFile filePath
+              res[path.basename(filePath).replace(/\.js(on)?$/, '')] =
+                getResourceFile filePath
             cb()
           (err) ->
             return reject err if err
@@ -126,26 +136,41 @@ getLangResource = (->
 )()
 
 module.exports = (opt = {}) ->
-  throw new gutil.PluginError('gulp-html-i18n', 'Please spicity langDir') if not opt.langDir
+  if not opt.langDir
+    throw new gutil.PluginError('gulp-html-i18n', 'Please specify langDir')
+
   langDir = path.resolve process.cwd(), opt.langDir
   seperator = opt.seperator || '-'
   through.obj (file, enc, next) ->
-    return @emit 'error', new gutil.PluginError('gulp-html-i18n', 'File can\'t be null') if file.isNull()
-    return @emit 'error', new gutil.PluginError('gulp-html-i18n', 'Streams not supported') if file.isStream()
+    if file.isNull()
+      return @emit 'error',
+        new gutil.PluginError('gulp-html-i18n', 'File can\'t be null')
+
+    if file.isStream()
+      return @emit 'error',
+        new gutil.PluginError('gulp-html-i18n', 'Streams not supported')
+
     getLangResource(langDir).then(
       (langResource) =>
         if file._lang_
-          content = replaceProperties file.contents.toString(), langResource[file._lang_]
+          content = replaceProperties file.contents.toString(),
+            langResource[file._lang_]
+
           file.contents = new Buffer content
           @push file
         else
           langResource.LANG_LIST.forEach (lang) =>
             originPath = file.path
             newFilePath = originPath.replace /\.src\.html$/, '\.html'
-            newFilePath = gutil.replaceExtension newFilePath, seperator + lang + '.html'
-            content = replaceProperties file.contents.toString(), langResource[lang]
+            newFilePath = gutil.replaceExtension newFilePath,
+              seperator + lang + '.html'
+
+            content = replaceProperties file.contents.toString(),
+              langResource[lang]
+
             if opt.trace
-              trace = '<!-- trace:' + path.relative(process.cwd(), originPath) + ' -->'
+              tracePath = path.relative(process.cwd(), originPath)
+              trace = '<!-- trace:' + tracePath + ' -->'
               if (/(<body[^>]*>)/i).test content
                 content = content.replace /(<body[^>]*>)/i, '$1' + EOL + trace
               else

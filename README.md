@@ -15,7 +15,8 @@ define({
 };
 ```
 
-`gulp-html-i18n` will produce an object called `index`. You can then use `index.heading` to get a result of "Welcome!".
+`gulp-html-i18n` will produce an object called `index`. You can then use
+`${{ index.heading }}$` to get a result of "Welcome!".
 
 ### JSON
 Given the following in a file named: `lang/en-US/index.json`
@@ -27,10 +28,12 @@ Given the following in a file named: `lang/en-US/index.json`
 }
 ```
 
-`gulp-html-i18n` will produce an object called `index`. You can then use `index.heading` to get a result of "Welcome!".
+`gulp-html-i18n` will produce an object called `index`. You can then use
+`${{ index.heading }}$` to get a result of "Welcome!".
 
 ## HTML Markup
-To use either of the examples from above, replace the text in your HTML files with a formatted tag: `${{ library.tag.name }}$`
+To use either of the examples from above, replace the text in your HTML files
+with a formatted tag: `${{ library.tag.name }}$`
 
 ### Example: index.html
 
@@ -80,7 +83,8 @@ gulp.task('build:localize', function() {
 });
 ```
 
-will compile `index.html` to `public/index-{lang}.html` for each langugage you define in `./lang`.
+will compile `index.html` to `public/index-{lang}.html` for each langugage your
+define in `./lang`.
 
 ## Options
 
