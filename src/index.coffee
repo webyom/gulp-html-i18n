@@ -165,6 +165,22 @@ module.exports = (opt = {}) ->
             newFilePath = gutil.replaceExtension newFilePath,
               seperator + lang + '.html'
 
+            #
+            # If the option `createLangDirs` is set, save path/foo.html
+            # to path/lang/foo.html. Otherwise, save to path/foo-lang.html
+            #
+            if opt.createLangDirs
+              newFilePath = path.resolve(
+                path.dirname(newFilePath),
+                lang,
+                path.basename(newFilePath)
+              )
+            else
+              newFilePath = gutil.replaceExtension(
+                newFilePath,
+                seperator + lang + '.html'
+              )
+
             content = replaceProperties file.contents.toString(),
               langResource[lang]
 
