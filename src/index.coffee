@@ -60,7 +60,7 @@ getLangResource = (->
   getResourceFile = (filePath) ->
     try
       if path.extname(filePath) is '.js'
-        res = eval fs.readFileSync(filePath).toString()
+        res = getJsResource(filePath)
       else if path.extname(filePath) is '.json'
         res = getJSONResource(filePath)
     catch e
@@ -162,8 +162,6 @@ module.exports = (opt = {}) ->
           langResource.LANG_LIST.forEach (lang) =>
             originPath = file.path
             newFilePath = originPath.replace /\.src\.html$/, '\.html'
-            newFilePath = gutil.replaceExtension newFilePath,
-              seperator + lang + '.html'
 
             #
             # If the option `createLangDirs` is set, save path/foo.html
