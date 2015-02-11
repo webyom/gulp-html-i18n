@@ -6,7 +6,7 @@ gutil   = require 'gulp-util'
 through = require 'through2'
 
 EOL           = '\n'
-langRegExp    = /\${{([\w\-\.]+)}}\$/g
+langRegExp    = /\${{ ?([\w\-\.]+) ?}}\$/g
 supportedType = ['.js', '.json']
 
 #
