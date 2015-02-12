@@ -106,7 +106,7 @@ getLangResource = (->
       else
         resolve()
 
-  getLangResource = (dir) ->
+  getLangResource = (dir, opt) ->
     Q.Promise (resolve, reject) ->
       if langResource
         return resolve langResource
@@ -159,7 +159,7 @@ module.exports = (opt = {}) ->
       return @emit 'error',
         new gutil.PluginError('gulp-html-i18n', 'Streams not supported')
 
-    getLangResource(langDir).then(
+    getLangResource(langDir, opt).then(
       (langResource) =>
         if file._lang_
           content = replaceProperties file.contents.toString(),
