@@ -118,7 +118,16 @@ getLangResource = (->
           return cb() if langDir.indexOf('.') is 0
           langDir = path.resolve dir, langDir
           langCode = path.basename langDir
-          if fs.statSync(langDir).isDirectory()
+
+          # Only load the provided language if inline is defined
+          if opt.inline
+            if fs.statSync(opt.inline).isDirectory()
+              res.LANG_LIST = [opt.inline]
+            else
+              throw new Error 'Language ' + opt.inilne + ' has no definitions!'
+
+          # Otherwise, load all languages in dir
+          else if fs.statSync(langDir).isDirectory()
             res.LANG_LIST.push langCode
             getResource(langDir).then(
               (resource) ->
@@ -173,6 +182,13 @@ module.exports = (opt = {}) ->
                 lang,
                 path.basename(newFilePath)
               )
+
+            #
+            # If the option `inline` is set, replace the tags in the same source file,
+            # rather than creating a new one
+            #
+            else if opt.inline
+              newFilePath = originPath
             else
               newFilePath = gutil.replaceExtension(
                 newFilePath,
