@@ -121,7 +121,7 @@ getLangResource = (->
 
           # Only load the provided language if inline is defined
           if opt.inline
-            if fs.statSync(opt.inline).isDirectory()
+            if fs.statSync(path.resolve dir, opt.inline).isDirectory()
               res.LANG_LIST = [opt.inline]
             else
               throw new Error 'Language ' + opt.inilne + ' has no definitions!'
