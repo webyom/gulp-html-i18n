@@ -18,7 +18,7 @@ getProperty = (propName, properties) ->
   while tmp.length and res
     res = res[tmp.shift()]
 
-    console.log propName, 'not found in definition file!' if res == undefined
+    console.warn propName, 'not found in definition file!' if res == undefined
   res
 
 #
@@ -112,6 +112,14 @@ getLangResource = (->
         return resolve langResource
       res = LANG_LIST: []
       langList = fs.readdirSync dir
+
+      # Only load the provided language if inline is defined
+      if opt.inline
+        if fs.statSync(path.resolve dir, opt.inline).isDirectory()
+          langList = [opt.inline]
+        else
+          throw new Error 'Language ' + opt.inline + ' has no definitions!'
+
       async.each(
         langList
         (langDir, cb) ->
@@ -119,15 +127,7 @@ getLangResource = (->
           langDir = path.resolve dir, langDir
           langCode = path.basename langDir
 
-          # Only load the provided language if inline is defined
-          if opt.inline
-            if fs.statSync(path.resolve dir, opt.inline).isDirectory()
-              res.LANG_LIST = [opt.inline]
-            else
-              throw new Error 'Language ' + opt.inilne + ' has no definitions!'
-
-          # Otherwise, load all languages in dir
-          else if fs.statSync(langDir).isDirectory()
+          if fs.statSync(langDir).isDirectory()
             res.LANG_LIST.push langCode
             getResource(langDir).then(
               (resource) ->
