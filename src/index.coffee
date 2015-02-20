@@ -6,6 +6,7 @@ gutil   = require 'gulp-util'
 through = require 'through2'
 
 EOL           = '\n'
+options       = undefined
 langRegExp    = /\${{ ?([\w\-\.]+) ?}}\$/g
 supportedType = ['.js', '.json']
 
@@ -18,8 +19,17 @@ getProperty = (propName, properties) ->
   while tmp.length and res
     res = res[tmp.shift()]
 
-    console.warn propName, 'not found in definition file!' if res == undefined
+    handleUndefined(propName) if res == undefined
   res
+
+#
+# Handler for undefined props
+#
+handleUndefined = (propName) ->
+  if options.failOnMissing
+    throw "#{propName} not found in definition file!"
+  else
+    console.warn "#{propName} not found in definition file!"
 
 #
 # Does the actual work of substituting tags for definitions
@@ -106,7 +116,7 @@ getLangResource = (->
       else
         resolve()
 
-  getLangResource = (dir, opt) ->
+  getLangResource = (dir) ->
     Q.Promise (resolve, reject) ->
       if langResource
         return resolve langResource
@@ -114,9 +124,9 @@ getLangResource = (->
       langList = fs.readdirSync dir
 
       # Only load the provided language if inline is defined
-      if opt.inline
-        if fs.statSync(path.resolve dir, opt.inline).isDirectory()
-          langList = [opt.inline]
+      if options.inline
+        if fs.statSync(path.resolve dir, options.inline).isDirectory()
+          langList = [options.inline]
         else
           throw new Error 'Language ' + opt.inline + ' has no definitions!'
 
@@ -145,6 +155,7 @@ getLangResource = (->
 )()
 
 module.exports = (opt = {}) ->
+  options = opt
   if not opt.langDir
     throw new gutil.PluginError('gulp-html-i18n', 'Please specify langDir')
 
@@ -159,7 +170,7 @@ module.exports = (opt = {}) ->
       return @emit 'error',
         new gutil.PluginError('gulp-html-i18n', 'Streams not supported')
 
-    getLangResource(langDir, opt).then(
+    getLangResource(langDir).then(
       (langResource) =>
         if file._lang_
           content = replaceProperties file.contents.toString(),

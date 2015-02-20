@@ -1,4 +1,5 @@
 gulp = require 'gulp'
+i18n = require './lib/index'
 coffee = require 'gulp-coffee'
 
 #
@@ -13,8 +14,7 @@ gulp.task 'compile', ->
 # Demonstrates a basic execution
 #
 gulp.task 'example', ->
-  i18n = require './lib/index'
-  gulp.src('example/src/**/*.src.html')
+  gulp.src('example/src/**/index.src.html')
     .pipe i18n
       langDir: 'example/src/lang'
       trace: true
@@ -25,8 +25,7 @@ gulp.task 'example', ->
 # rather than creating language-specific files
 #
 gulp.task 'inline', ->
-  i18n = require './lib/index'
-  gulp.src('example/src/**/*.src.html')
+  gulp.src('example/src/**/index.src.html')
     .pipe i18n
       langDir: 'example/src/lang'
       inline: 'en'
@@ -37,14 +36,23 @@ gulp.task 'inline', ->
 # creating suffixed files
 #
 gulp.task 'dirs', ->
-  i18n = require './lib/index'
-  gulp.src('example/src/**/*.src.html')
+  gulp.src('example/src/**/index.src.html')
     .pipe i18n
       createLangDirs: true
       langDir: 'example/src/lang'
       trace: true
     .pipe gulp.dest('example/dirs')
 
+#
+# Demonstrates what happens when a key is missing
+#
+gulp.task 'failure', ->
+  gulp.src('example/src/**/failure.src.html')
+    .pipe i18n
+      langDir: 'example/src/lang'
+      trace: true
+      failOnMissing: true
+    .pipe gulp.dest('example/failure')
 
 #
 # Calling `gulp` will compile
