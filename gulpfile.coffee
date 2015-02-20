@@ -55,6 +55,18 @@ gulp.task 'failure', ->
     .pipe gulp.dest('example/failure')
 
 #
+# Demonstrates what happens when a key is missing
+#
+gulp.task 'fallback', ->
+  gulp.src('example/src/**/index.src.html')
+    .pipe i18n
+      langDir: 'example/src/fallback'
+      trace: true
+      fallback: 'en'
+    .pipe gulp.dest('example/fallback')
+
+
+#
 # Calling `gulp` will compile
 #
 gulp.task 'default', ['compile']

@@ -90,8 +90,9 @@ define in `./lang`.
 
 Option | Default | Type | Description
 -------|---------|------|------------
-langDir | undefined (required, must be provided)| String | Specifies the path to find definitions
-inline | undefined | String | If given, will use the provided language to create an output file of the same name as input. For example, passing `inline: 'en-US'` for `index.html` will result in `index.html` with English replacements.
+**langDir** (required)| undefined | String | Specifies the path to find definitions
 createLangDirs | false | bool | If `true`, instead of translating `index.html` into `index-en.html`, etc, will translate to `en/index.html`, etc.
-trace | false | bool | If `true`, will place comments in output HTML to show where the translated strings came from
 failOnMissing | false | bool | If `true`, any undefined tag found in an HTML file will throw an error. When `false`, missing tags are logged, but the process finishes.
+fallback | undefined | String | If given, will use the provided language as a fallback: For any other language, if a given tag's value is not provided, it will use the fallback language value.
+inline | undefined | String | If given, will use the provided language to create an output file of the same name as input. For example, passing `inline: 'en-US'` for `index.html` will result in `index.html` with English replacements.
+trace | false | bool | If `true`, will place comments in output HTML to show where the translated strings came from

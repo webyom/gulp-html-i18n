@@ -41,7 +41,10 @@ replaceProperties = (content, properties, lv) ->
   content.replace langRegExp, (full, propName) ->
     res = getProperty propName, properties
     if typeof res isnt 'string'
-      res = '*' + propName + '*'
+      if !options.fallback
+        res = '*' + propName + '*'
+      else
+        res = '${{ ' + propName + ' }}$'
     else if langRegExp.test res
       if lv > 3
         res = '**' + propName + '**'
@@ -208,6 +211,12 @@ module.exports = (opt = {}) ->
 
             content = replaceProperties file.contents.toString(),
               langResource[lang]
+
+            if options.fallback
+              console.log lang
+              console.log content
+              content = replaceProperties content, langResource[options.fallback]
+              console.log content
 
             if opt.trace
               tracePath = path.relative(process.cwd(), originPath)
