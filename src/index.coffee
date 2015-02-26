@@ -20,6 +20,11 @@ getProperty = (propName, properties) ->
     res = res[tmp.shift()]
 
     handleUndefined(propName) if res == undefined
+
+  if options.escapeQuotes == true
+    res = res.replace(/"/, '\"')
+    res = res.replace(/'/, "\'")
+
   res
 
 #
