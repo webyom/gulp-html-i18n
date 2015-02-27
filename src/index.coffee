@@ -22,8 +22,8 @@ getProperty = (propName, properties) ->
     handleUndefined(propName) if res == undefined
 
   if options.escapeQuotes == true
-    res = res.replace(/"/, '\"')
-    res = res.replace(/'/, "\'")
+    res = res.replace(/"/g, '\\"')
+    res = res.replace(/'/g, "\\'")
 
   res
 

@@ -65,6 +65,18 @@ gulp.task 'fallback', ->
       fallback: 'en'
     .pipe gulp.dest('example/fallback')
 
+#
+# Demonstrates what happens when a key is missing
+#
+gulp.task 'escape', ->
+  gulp.src('example/src/**/escape.src.html')
+    .pipe i18n
+      escapeQuotes: true
+      langDir: 'example/src/escape'
+      trace: true
+      fallback: 'en'
+    .pipe gulp.dest('example/escape')
+
 
 #
 # Calling `gulp` will compile
