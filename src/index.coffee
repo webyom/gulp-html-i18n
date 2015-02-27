@@ -6,7 +6,8 @@ gutil   = require 'gulp-util'
 through = require 'through2'
 
 EOL           = '\n'
-langRegExp    = /\${{([\w\-\.]+)}}\$/g
+options       = undefined
+langRegExp    = /\${{ ?([\w\-\.]+) ?}}\$/g
 supportedType = ['.js', '.json']
 
 #
@@ -18,8 +19,22 @@ getProperty = (propName, properties) ->
   while tmp.length and res
     res = res[tmp.shift()]
 
-    console.log propName, 'not found in definition file!' if res == undefined
+    handleUndefined(propName) if res == undefined
+
+  if options.escapeQuotes == true
+    res = res.replace(/"/g, '\\"')
+    res = res.replace(/'/g, "\\'")
+
   res
+
+#
+# Handler for undefined props
+#
+handleUndefined = (propName) ->
+  if options.failOnMissing
+    throw "#{propName} not found in definition file!"
+  else
+    console.warn "#{propName} not found in definition file!"
 
 #
 # Does the actual work of substituting tags for definitions
@@ -31,7 +46,10 @@ replaceProperties = (content, properties, lv) ->
   content.replace langRegExp, (full, propName) ->
     res = getProperty propName, properties
     if typeof res isnt 'string'
-      res = '*' + propName + '*'
+      if !options.fallback
+        res = '*' + propName + '*'
+      else
+        res = '${{ ' + propName + ' }}$'
     else if langRegExp.test res
       if lv > 3
         res = '**' + propName + '**'
@@ -60,7 +78,7 @@ getLangResource = (->
   getResourceFile = (filePath) ->
     try
       if path.extname(filePath) is '.js'
-        res = eval fs.readFileSync(filePath).toString()
+        res = getJsResource(filePath)
       else if path.extname(filePath) is '.json'
         res = getJSONResource(filePath)
     catch e
@@ -112,12 +130,21 @@ getLangResource = (->
         return resolve langResource
       res = LANG_LIST: []
       langList = fs.readdirSync dir
+
+      # Only load the provided language if inline is defined
+      if options.inline
+        if fs.statSync(path.resolve dir, options.inline).isDirectory()
+          langList = [options.inline]
+        else
+          throw new Error 'Language ' + opt.inline + ' has no definitions!'
+
       async.each(
         langList
         (langDir, cb) ->
           return cb() if langDir.indexOf('.') is 0
           langDir = path.resolve dir, langDir
           langCode = path.basename langDir
+
           if fs.statSync(langDir).isDirectory()
             res.LANG_LIST.push langCode
             getResource(langDir).then(
@@ -136,6 +163,7 @@ getLangResource = (->
 )()
 
 module.exports = (opt = {}) ->
+  options = opt
   if not opt.langDir
     throw new gutil.PluginError('gulp-html-i18n', 'Please specify langDir')
 
@@ -162,8 +190,6 @@ module.exports = (opt = {}) ->
           langResource.LANG_LIST.forEach (lang) =>
             originPath = file.path
             newFilePath = originPath.replace /\.src\.html$/, '\.html'
-            newFilePath = gutil.replaceExtension newFilePath,
-              seperator + lang + '.html'
 
             #
             # If the option `createLangDirs` is set, save path/foo.html
@@ -175,6 +201,13 @@ module.exports = (opt = {}) ->
                 lang,
                 path.basename(newFilePath)
               )
+
+            #
+            # If the option `inline` is set, replace the tags in the same source file,
+            # rather than creating a new one
+            #
+            else if opt.inline
+              newFilePath = originPath
             else
               newFilePath = gutil.replaceExtension(
                 newFilePath,
@@ -183,6 +216,12 @@ module.exports = (opt = {}) ->
 
             content = replaceProperties file.contents.toString(),
               langResource[lang]
+
+            if options.fallback
+              console.log lang
+              console.log content
+              content = replaceProperties content, langResource[options.fallback]
+              console.log content
 
             if opt.trace
               tracePath = path.relative(process.cwd(), originPath)
