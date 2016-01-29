@@ -5,10 +5,10 @@ async   = require 'async'
 gutil   = require 'gulp-util'
 through = require 'through2'
 
-EOL           = '\n'
-options       = undefined
-langRegExp    = /\${{ ?([\w\-\.]+) ?}}\$/g
-supportedType = ['.js', '.json']
+EOL               = '\n'
+options           = undefined
+defaultLangRegExp = /\${{ ?([\w\-\.]+) ?}}\$/g
+supportedType     = ['.js', '.json']
 
 #
 # Convert a property name into a reference to the definition
@@ -41,6 +41,7 @@ handleUndefined = (propName) ->
 #
 replaceProperties = (content, properties, lv) ->
   lv = lv || 1
+  langRegExp = options.langRegExp || defaultLangRegExp
   if not properties
     return content
   content.replace langRegExp, (full, propName) ->
