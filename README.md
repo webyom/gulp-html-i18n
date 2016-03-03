@@ -96,3 +96,4 @@ failOnMissing | false | bool | If `true`, any undefined tag found in an HTML fil
 fallback | undefined | String | If given, will use the provided language as a fallback: For any other language, if a given tag's value is not provided, it will use the fallback language value.
 inline | undefined | String | If given, will use the provided language to create an output file of the same name as input. For example, passing `inline: 'en-US'` for `index.html` will result in `index.html` with English replacements.
 trace | false | bool | If `true`, will place comments in output HTML to show where the translated strings came from
+subfolder | false | String | If `createLangDirs` true and given, suffixes output path with given string
