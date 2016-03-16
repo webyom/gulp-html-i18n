@@ -4,6 +4,7 @@ path    = require 'path'
 async   = require 'async'
 gutil   = require 'gulp-util'
 through = require 'through2'
+extend  = require 'extend'
 
 EOL               = '\n'
 options           = undefined
@@ -182,9 +183,8 @@ module.exports = (opt = {}) ->
     getLangResource(langDir).then(
       (langResource) =>
         if file._lang_
-          content = replaceProperties file.contents.toString(),
-            langResource[file._lang_]
-
+          content = replaceProperties file.contents.toString(), 
+            extend({}, langResource[file._lang_], {_lang_: file._lang_, _default_lang_: opt.defaultLang || ''})
           file.contents = new Buffer content
           @push file
         else
@@ -213,10 +213,11 @@ module.exports = (opt = {}) ->
               )
 
             content = replaceProperties file.contents.toString(),
-              langResource[lang]
+              extend({}, langResource[lang], {_lang_: lang, _default_lang_: opt.defaultLang || ''})
 
             if options.fallback
-              content = replaceProperties content, langResource[options.fallback]
+              content = replaceProperties content, 
+                extend({}, langResource[options.fallback], {_lang_: lang, _default_lang_: opt.defaultLang || ''})
 
             if opt.trace
               tracePath = path.relative(process.cwd(), originPath)

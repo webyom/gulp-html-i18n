@@ -35,6 +35,8 @@ Given the following in a file named: `lang/en-US/index.json`
 To use either of the examples from above, replace the text in your HTML files
 with a formatted tag: `${{ library.tag.name }}$`
 
+`${{ _lang_ }}` and `${{ _default_lang_ }}` are two special markups, stand for curreny file language and the `defaultLang` option.
+
 ### Example: index.html
 
 Initial:
