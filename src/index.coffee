@@ -19,9 +19,9 @@ getProperty = (propName, properties) ->
   while tmp.length and res
     res = res[tmp.shift()]
 
-    handleUndefined(propName) if res == undefined
+    handleUndefined(propName) if res is undefined
 
-  if options.escapeQuotes == true
+  if res and options.escapeQuotes is true
     res = res.replace(/"/g, '\\"')
     res = res.replace(/'/g, "\\'")
 
@@ -92,7 +92,7 @@ getLangResource = (->
   # Interpret the string contents of a JS file as a resource object
   getJsResource = (filePath) ->
     res = eval(fs.readFileSync(filePath).toString())
-    res = res() if (typeof res == 'function')
+    res = res() if (typeof res is 'function')
     res
 
   # Parse a JSON file into a resource object
@@ -197,11 +197,8 @@ module.exports = (opt = {}) ->
             # to path/lang/foo.html. Otherwise, save to path/foo-lang.html
             #
             if opt.createLangDirs
-              newFilePath = path.resolve(
-                path.dirname(newFilePath),
-                lang,
-                path.basename(newFilePath)
-              )
+              if opt.defaultLang isnt lang
+                newFilePath = file.base + lang + '/' + newFilePath.slice(file.base.length)
 
             #
             # If the option `inline` is set, replace the tags in the same source file,
@@ -219,10 +216,7 @@ module.exports = (opt = {}) ->
               langResource[lang]
 
             if options.fallback
-              console.log lang
-              console.log content
               content = replaceProperties content, langResource[options.fallback]
-              console.log content
 
             if opt.trace
               tracePath = path.relative(process.cwd(), originPath)

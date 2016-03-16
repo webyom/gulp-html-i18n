@@ -13,7 +13,7 @@ gulp.task 'compile', ->
 #
 # Demonstrates a basic execution
 #
-gulp.task 'example', ->
+gulp.task 'normal', ->
   gulp.src('example/src/**/index.src.html')
     .pipe i18n
       langDir: 'example/src/lang'
@@ -40,6 +40,7 @@ gulp.task 'dirs', ->
     .pipe i18n
       createLangDirs: true
       langDir: 'example/src/lang'
+      defaultLang: 'zh-cn'
       trace: true
     .pipe gulp.dest('example/dirs')
 
@@ -82,3 +83,4 @@ gulp.task 'escape', ->
 # Calling `gulp` will compile
 #
 gulp.task 'default', ['compile']
+gulp.task 'example', ['normal', 'inline', 'dirs', 'failure', 'fallback', 'escape']
