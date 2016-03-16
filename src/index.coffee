@@ -233,8 +233,35 @@ module.exports = (opt = {}) ->
               contents: new Buffer content
             newFile._lang_ = lang
             newFile._originPath_ = originPath
+            newFile._i18nPath_ = newFilePath
             @push newFile
         next()
       (err) =>
         @emit 'error', new gutil.PluginError('gulp-html-i18n', err)
     ).done()
+
+module.exports.restorePath = () ->
+  through.obj (file, enc, next) ->
+    if file.isNull()
+      return @emit 'error',
+        new gutil.PluginError('gulp-html-i18n', 'File can\'t be null')
+    if file.isStream()
+      return @emit 'error',
+        new gutil.PluginError('gulp-html-i18n', 'Streams not supported')
+    if file._originPath_
+      file.path = file._originPath_
+    @push file
+    next()
+
+module.exports.i18nPath = () ->
+  through.obj (file, enc, next) ->
+    if file.isNull()
+      return @emit 'error',
+        new gutil.PluginError('gulp-html-i18n', 'File can\'t be null')
+    if file.isStream()
+      return @emit 'error',
+        new gutil.PluginError('gulp-html-i18n', 'Streams not supported')
+    if file._i18nPath_
+      file.path = file._i18nPath_
+    @push file
+    next()
