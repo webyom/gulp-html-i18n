@@ -12,7 +12,7 @@ Given the following in a file named: `lang/en-US/index.js`
 define({
   heading: "Welcome!",
   footer:  "Copyright 2015"
-};
+});
 ```
 
 `gulp-html-i18n` will produce an object called `index`. You can then use
