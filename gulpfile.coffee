@@ -29,7 +29,7 @@ gulp.task 'inline', ->
     .pipe i18n
       langDir: 'example/src/lang'
       inline: 'en'
-    .pipe gulp.dest('example/inline')
+    .pipe gulp.dest('example/dest/inline')
 
 #
 # Demonstrates creating language specific subdirectories, rather than
@@ -42,7 +42,7 @@ gulp.task 'dirs', ->
       langDir: 'example/src/lang'
       defaultLang: 'zh-cn'
       trace: true
-    .pipe gulp.dest('example/dirs')
+    .pipe gulp.dest('example/dest/dirs')
 
 #
 # Demonstrates what happens when a key is missing
@@ -53,7 +53,7 @@ gulp.task 'failure', ->
       langDir: 'example/src/lang'
       trace: true
       failOnMissing: true
-    .pipe gulp.dest('example/failure')
+    .pipe gulp.dest('example/dest/failure')
 
 #
 # Demonstrates what happens when a key is missing
@@ -64,7 +64,7 @@ gulp.task 'fallback', ->
       langDir: 'example/src/fallback'
       trace: true
       fallback: 'en'
-    .pipe gulp.dest('example/fallback')
+    .pipe gulp.dest('example/dest/fallback')
 
 #
 # Demonstrates what happens when a key is missing
@@ -76,11 +76,23 @@ gulp.task 'escape', ->
       langDir: 'example/src/escape'
       trace: true
       fallback: 'en'
-    .pipe gulp.dest('example/escape')
+    .pipe gulp.dest('example/dest/escape')
+
+#
+# Demonstrates what happens when a key is missing
+#
+gulp.task 'commonjs', ->
+  gulp.src('example/src/**/index.src.html')
+    .pipe i18n
+      escapeQuotes: true
+      langDir: 'example/src/commonjs'
+      trace: true
+      fallback: 'en'
+    .pipe gulp.dest('example/dest/commonjs')
 
 
 #
 # Calling `gulp` will compile
 #
 gulp.task 'default', ['compile']
-gulp.task 'example', ['normal', 'inline', 'dirs', 'failure', 'fallback', 'escape']
+gulp.task 'example', ['normal', 'inline', 'dirs', 'failure', 'fallback', 'escape', 'commonjs']

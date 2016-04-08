@@ -8,8 +8,19 @@ Internationalize your HTML files with [gulp](http://gulpjs.com/)!
 ### JS
 Given the following in a file named: `lang/en-US/index.js`
 
+#### AMD
+
 ```js
 define({
+  heading: "Welcome!",
+  footer:  "Copyright 2015"
+});
+```
+
+#### CommonJS
+
+```js
+modle.exports = {
   heading: "Welcome!",
   footer:  "Copyright 2015"
 };
