@@ -197,8 +197,7 @@ module.exports = (opt = {}) ->
             # to path/lang/foo.html. Otherwise, save to path/foo-lang.html
             #
             if opt.createLangDirs
-              if opt.defaultLang isnt lang
-                newFilePath = file.base + lang + '/' + newFilePath.slice(file.base.length)
+              newFilePath = file.base + lang + '/' + newFilePath.slice(file.base.length)
 
             #
             # If the option `inline` is set, replace the tags in the same source file,
@@ -235,6 +234,17 @@ module.exports = (opt = {}) ->
             newFile._originPath_ = originPath
             newFile._i18nPath_ = newFilePath
             @push newFile
+            if opt.createLangDirs and lang is opt.defaultLang
+                newFilePath = originPath.replace /\.src\.html$/, '\.html'
+                newFile = new gutil.File
+                    base: file.base
+                    cwd: file.cwd
+                    path: newFilePath
+                    contents: new Buffer content
+                newFile._lang_ = lang
+                newFile._originPath_ = originPath
+                newFile._i18nPath_ = newFilePath
+                @push newFile
         next()
       (err) =>
         @emit 'error', new gutil.PluginError('gulp-html-i18n', err)
