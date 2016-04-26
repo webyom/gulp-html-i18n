@@ -104,6 +104,7 @@ define in `./lang`.
 Option | Default | Type | Description
 -------|---------|------|------------
 **langDir** (required)| undefined | String | Specifies the path to find definitions
+filenameI18n | false | bool | If `true`, you can use `${{ xxx }}$` tag in your filename as in the file content, then the translated filename will contain the translated content other than the language code.
 createLangDirs | false | bool | If `true`, instead of translating `index.html` into `index-en.html`, etc, will translate to `en/index.html`, etc.
 defaultLang | undefined | String | If defined and `createLangDirs` is `true`, translate `index.html` into `index.html` with the default language, etc.
 failOnMissing | false | bool | If `true`, any undefined tag found in an HTML file will throw an error. When `false`, missing tags are logged, but the process finishes.

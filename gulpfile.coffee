@@ -90,9 +90,19 @@ gulp.task 'commonjs', ->
       fallback: 'en'
     .pipe gulp.dest('example/dest/commonjs')
 
+#
+# Demonstrates what happens when a key is missing
+#
+gulp.task 'filename-i18n', ->
+  gulp.src('example/src/**/${{common.title}}$.src.html')
+    .pipe i18n
+      langDir: 'example/src/lang'
+      filenameI18n: true
+      trace: true
+    .pipe gulp.dest('example/dest/filename-i18n')
 
 #
 # Calling `gulp` will compile
 #
 gulp.task 'default', ['compile']
-gulp.task 'example', ['normal', 'inline', 'dirs', 'failure', 'fallback', 'escape', 'commonjs']
+gulp.task 'example', ['normal', 'inline', 'dirs', 'failure', 'fallback', 'escape', 'commonjs', 'filename-i18n']
