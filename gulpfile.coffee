@@ -52,7 +52,7 @@ gulp.task 'failure', ->
     .pipe i18n
       langDir: 'example/src/lang'
       trace: true
-      failOnMissing: true
+      failOnMissing: false
     .pipe gulp.dest('example/dest/failure')
 
 #
@@ -67,7 +67,7 @@ gulp.task 'fallback', ->
     .pipe gulp.dest('example/dest/fallback')
 
 #
-# Demonstrates what happens when a key is missing
+# Demonstrates escape
 #
 gulp.task 'escape', ->
   gulp.src('example/src/**/escape.src.html')
@@ -75,23 +75,20 @@ gulp.task 'escape', ->
       escapeQuotes: true
       langDir: 'example/src/escape'
       trace: true
-      fallback: 'en'
     .pipe gulp.dest('example/dest/escape')
 
 #
-# Demonstrates what happens when a key is missing
+# Demonstrates commonjs
 #
 gulp.task 'commonjs', ->
   gulp.src('example/src/**/index.src.html')
     .pipe i18n
-      escapeQuotes: true
       langDir: 'example/src/commonjs'
       trace: true
-      fallback: 'en'
     .pipe gulp.dest('example/dest/commonjs')
 
 #
-# Demonstrates what happens when a key is missing
+# Demonstrates filename-i18n
 #
 gulp.task 'filename-i18n', ->
   gulp.src('example/src/**/${{common.title}}$.src.html')
@@ -102,7 +99,17 @@ gulp.task 'filename-i18n', ->
     .pipe gulp.dest('example/dest/filename-i18n')
 
 #
+# Demonstrates filename-i18n
+#
+gulp.task 'jsfile', ->
+  gulp.src('example/src/index.js')
+    .pipe i18n
+      langDir: 'example/src/lang'
+      trace: true
+    .pipe gulp.dest('example/dest')
+
+#
 # Calling `gulp` will compile
 #
 gulp.task 'default', ['compile']
-gulp.task 'example', ['normal', 'inline', 'dirs', 'failure', 'fallback', 'escape', 'commonjs', 'filename-i18n']
+gulp.task 'example', ['normal', 'inline', 'dirs', 'failure', 'fallback', 'escape', 'commonjs', 'filename-i18n', 'jsfile']

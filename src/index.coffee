@@ -7,22 +7,21 @@ through = require 'through2'
 extend  = require 'extend'
 
 EOL               = '\n'
-options           = undefined
 defaultLangRegExp = /\${{ ?([\w\-\.]+) ?}}\$/g
 supportedType     = ['.js', '.json']
 
 #
 # Convert a property name into a reference to the definition
 #
-getProperty = (propName, properties) ->
+getProperty = (propName, properties, opt) ->
   tmp = propName.split '.'
   res = properties
   while tmp.length and res
     res = res[tmp.shift()]
 
-    handleUndefined(propName) if res is undefined
+    handleUndefined(propName, opt) if res is undefined
 
-  if res and options.escapeQuotes is true
+  if res and opt.escapeQuotes is true
     res = res.replace(/"/g, '\\"')
     res = res.replace(/'/g, "\\'")
 
@@ -31,8 +30,8 @@ getProperty = (propName, properties) ->
 #
 # Handler for undefined props
 #
-handleUndefined = (propName) ->
-  if options.failOnMissing
+handleUndefined = (propName, opt) ->
+  if opt.failOnMissing
     throw "#{propName} not found in definition file!"
   else
     console.warn "#{propName} not found in definition file!"
@@ -40,15 +39,15 @@ handleUndefined = (propName) ->
 #
 # Does the actual work of substituting tags for definitions
 #
-replaceProperties = (content, properties, lv) ->
+replaceProperties = (content, properties, opt, lv) ->
   lv = lv || 1
-  langRegExp = options.langRegExp || defaultLangRegExp
+  langRegExp = opt.langRegExp || defaultLangRegExp
   if not properties
     return content
   content.replace langRegExp, (full, propName) ->
-    res = getProperty propName, properties
+    res = getProperty propName, properties, opt
     if typeof res isnt 'string'
-      if !options.fallback
+      if !opt.fallback
         res = '*' + propName + '*'
       else
         res = '${{ ' + propName + ' }}$'
@@ -56,7 +55,7 @@ replaceProperties = (content, properties, lv) ->
       if lv > 3
         res = '**' + propName + '**'
       else
-        res = replaceProperties res, properties, lv + 1
+        res = replaceProperties res, properties, opt, lv + 1
     res
 
 #
@@ -126,7 +125,7 @@ getLangResource = (->
       else
         resolve()
 
-  getLangResource = (dir) ->
+  getLangResource = (dir, opt) ->
     Q.Promise (resolve, reject) ->
       if langResource
         return resolve langResource
@@ -134,9 +133,9 @@ getLangResource = (->
       langList = fs.readdirSync dir
 
       # Only load the provided language if inline is defined
-      if options.inline
-        if fs.statSync(path.resolve dir, options.inline).isDirectory()
-          langList = [options.inline]
+      if opt.inline
+        if fs.statSync(path.resolve dir, opt.inline).isDirectory()
+          langList = [opt.inline]
         else
           throw new Error 'Language ' + opt.inline + ' has no definitions!'
 
@@ -165,7 +164,6 @@ getLangResource = (->
 )()
 
 module.exports = (opt = {}) ->
-  options = opt
   if not opt.langDir
     throw new gutil.PluginError('gulp-html-i18n', 'Please specify langDir')
 
@@ -180,11 +178,11 @@ module.exports = (opt = {}) ->
       return @emit 'error',
         new gutil.PluginError('gulp-html-i18n', 'Streams not supported')
 
-    getLangResource(langDir).then(
+    getLangResource(langDir, opt).then(
       (langResource) =>
         if file._lang_
           content = replaceProperties file.contents.toString(), 
-            extend({}, langResource[file._lang_], {_lang_: file._lang_, _default_lang_: opt.defaultLang || ''})
+            extend({}, langResource[file._lang_], {_lang_: file._lang_, _default_lang_: opt.defaultLang || ''}), opt
           file.contents = new Buffer content
           @push file
         else
@@ -207,26 +205,30 @@ module.exports = (opt = {}) ->
               newFilePath = originPath
             else if opt.filenameI18n
               newFilePath = replaceProperties newFilePath,
-                extend({}, langResource[lang], {_lang_: lang, _default_lang_: opt.defaultLang || ''})
+                extend({}, langResource[lang], {_lang_: lang, _default_lang_: opt.defaultLang || ''}), opt
             else
               newFilePath = gutil.replaceExtension(
                 newFilePath,
-                seperator + lang + '.html'
+                seperator + lang + path.extname(originPath)
               )
 
             content = replaceProperties file.contents.toString(),
-              extend({}, langResource[lang], {_lang_: lang, _default_lang_: opt.defaultLang || ''})
-
-            if options.fallback
+              extend({}, langResource[lang], {_lang_: lang, _default_lang_: opt.defaultLang || ''}), opt
+            
+            if opt.fallback
               content = replaceProperties content, 
-                extend({}, langResource[options.fallback], {_lang_: lang, _default_lang_: opt.defaultLang || ''})
+                extend({}, langResource[opt.fallback], {_lang_: lang, _default_lang_: opt.defaultLang || ''}), opt
 
             if opt.trace
               tracePath = path.relative(process.cwd(), originPath)
-              trace = '<!-- trace:' + tracePath + ' -->'
-              if (/(<body[^>]*>)/i).test content
-                content = content.replace /(<body[^>]*>)/i, '$1' + EOL + trace
+              if path.extname(originPath).toLowerCase() in ['.html', '.htm', '.xml']
+                trace = '<!-- trace:' + tracePath + ' -->'
+                if (/(<body[^>]*>)/i).test content
+                  content = content.replace /(<body[^>]*>)/i, '$1' + EOL + trace
+                else
+                  content = trace + EOL + content
               else
+                trace = '/* trace:' + tracePath + ' */'
                 content = trace + EOL + content
             newFile = new gutil.File
               base: file.base

@@ -1,0 +1,1 @@
+var title = "${{common.title}}$";
