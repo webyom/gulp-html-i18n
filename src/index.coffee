@@ -181,7 +181,7 @@ module.exports = (opt = {}) ->
     getLangResource(langDir, opt).then(
       (langResource) =>
         if file._lang_
-          content = replaceProperties file.contents.toString(), 
+          content = replaceProperties file.contents.toString(),
             extend({}, langResource[file._lang_], {_lang_: file._lang_, _default_lang_: opt.defaultLang || ''}), opt
           file.contents = new Buffer content
           @push file
@@ -214,9 +214,9 @@ module.exports = (opt = {}) ->
 
             content = replaceProperties file.contents.toString(),
               extend({}, langResource[lang], {_lang_: lang, _default_lang_: opt.defaultLang || ''}), opt
-            
+
             if opt.fallback
-              content = replaceProperties content, 
+              content = replaceProperties content,
                 extend({}, langResource[opt.fallback], {_lang_: lang, _default_lang_: opt.defaultLang || ''}), opt
 
             if opt.trace
@@ -238,6 +238,8 @@ module.exports = (opt = {}) ->
             newFile._lang_ = lang
             newFile._originPath_ = originPath
             newFile._i18nPath_ = newFilePath
+            if file.sourceMap
+                newFile.sourceMap = file.sourceMap
             @push newFile
             if opt.createLangDirs and lang is opt.defaultLang
                 newFilePath = originPath.replace /\.src\.html$/, '\.html'
@@ -249,6 +251,8 @@ module.exports = (opt = {}) ->
                 newFile._lang_ = lang
                 newFile._originPath_ = originPath
                 newFile._i18nPath_ = newFilePath
+                if file.sourceMap
+                    newFile.sourceMap = file.sourceMap
                 @push newFile
         next()
       (err) =>
@@ -265,6 +269,8 @@ module.exports.restorePath = () ->
         new gutil.PluginError('gulp-html-i18n', 'Streams not supported')
     if file._originPath_
       file.path = file._originPath_
+    if file.sourceMap
+      newFile.sourceMap = file.sourceMap
     @push file
     next()
 
