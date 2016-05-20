@@ -196,21 +196,24 @@ module.exports = (opt = {}) ->
             #
             if opt.createLangDirs
               newFilePath = file.base + lang + '/' + newFilePath.slice(file.base.length)
-
+              if opt.filenameI18n
+                newFilePath = replaceProperties newFilePath,
+                  extend({}, langResource[lang], {_lang_: lang, _default_lang_: opt.defaultLang || ''}), opt
             #
             # If the option `inline` is set, replace the tags in the same source file,
             # rather than creating a new one
             #
             else if opt.inline
               newFilePath = originPath
-            else if opt.filenameI18n
-              newFilePath = replaceProperties newFilePath,
-                extend({}, langResource[lang], {_lang_: lang, _default_lang_: opt.defaultLang || ''}), opt
             else
-              newFilePath = gutil.replaceExtension(
-                newFilePath,
-                seperator + lang + path.extname(originPath)
-              )
+              if opt.filenameI18n
+                newFilePath = replaceProperties newFilePath,
+                  extend({}, langResource[lang], {_lang_: lang, _default_lang_: opt.defaultLang || ''}), opt
+              else
+                newFilePath = gutil.replaceExtension(
+                  newFilePath,
+                  seperator + lang + path.extname(originPath)
+                )
 
             content = replaceProperties file.contents.toString(),
               extend({}, langResource[lang], {_lang_: lang, _default_lang_: opt.defaultLang || ''}), opt
