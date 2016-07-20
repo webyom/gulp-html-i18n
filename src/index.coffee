@@ -289,3 +289,89 @@ module.exports.i18nPath = () ->
       file.path = file._i18nPath_
     @push file
     next()
+
+module.exports.jsonSortKey = (opt = {}) ->
+  through.obj (file, enc, next) ->
+    if file.isNull()
+      return @emit 'error',
+        new gutil.PluginError('gulp-html-i18n', 'File can\'t be null')
+    if file.isStream()
+      return @emit 'error',
+        new gutil.PluginError('gulp-html-i18n', 'Streams not supported')
+
+    convert = (obj, objKey) ->
+      keyStack.push objKey
+      if not obj or typeof obj isnt 'object'
+        res = obj
+      else if Array.isArray obj
+        res = obj.map (item, i) ->
+          convert item, i
+      else if opt.reserveOrder and opt.reserveOrder(keyStack) is true
+        res = obj
+      else
+        res = {}
+        keys = Object.keys(obj).sort()
+        keys.forEach (key) ->
+          res[key] = convert obj[key], key
+      keyStack.pop()
+      res
+
+    keyStack = []
+    contents = file.contents.toString()
+    obj = JSON.parse contents
+    obj = convert obj
+    contents = JSON.stringify obj, null, 2
+    if opt.endWithNewline
+      contents = contents + EOL
+    file.contents = new Buffer contents
+    @push file
+    next()
+
+module.exports.validateJsonConsistence = (opt = {}) ->
+  if not opt.langDir
+    throw new gutil.PluginError('gulp-html-i18n', 'Please specify langDir')
+
+  langDir = path.resolve process.cwd(), opt.langDir
+  langList = fs.readdirSync langDir
+  through.obj (file, enc, next) ->
+    if file.isNull()
+      return @emit 'error',
+        new gutil.PluginError('gulp-html-i18n', 'File can\'t be null')
+    if file.isStream()
+      return @emit 'error',
+        new gutil.PluginError('gulp-html-i18n', 'Streams not supported')
+
+    compare = (src, target, targetFilePath, compareKey) =>
+      error = () =>
+        gutil.log gutil.colors.red '"' + keyStack.join('.') + '" not consistence in files:' + EOL + filePath + EOL + targetFilePath
+        @emit 'error',
+          new gutil.PluginError('gulp-html-i18n', 'validateJsonConsistence failed')
+
+      keyStack.push compareKey
+      srcType = typeof src
+      targetType = typeof target
+      if srcType isnt targetType or Array.isArray(src) and not Array.isArray(target)
+        error()
+      if Array.isArray src
+        src.forEach (item, i) ->
+          compare src[i], target[i], targetFilePath, i
+      else if src and srcType is 'object'
+        Object.keys(src).forEach (key) ->
+          compare src[key], target[key], targetFilePath, key
+      keyStack.pop()
+
+    filePath = file.path
+    tmp = filePath.slice(langDir.length).replace(/^\/+/, '').split('/')
+    currentLang = tmp.shift()
+    if currentLang in langList
+      langFileName = tmp.join '/'
+      compareLangList = langList.filter (lang) ->
+        lang != currentLang
+      obj = require filePath
+      keyStack = []
+      compareLangList.forEach (lang) ->
+        compareFilePath = [langDir, lang, langFileName].join '/'
+        compareObj = require compareFilePath
+        compare obj, compareObj, compareFilePath, ''
+    @push file
+    next()
