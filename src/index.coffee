@@ -333,6 +333,9 @@ module.exports.validateJsonConsistence = (opt = {}) ->
 
   langDir = path.resolve process.cwd(), opt.langDir
   langList = fs.readdirSync langDir
+  langList = langList.filter (lang) ->
+  	dir = path.resolve langDir, lang
+  	fs.statSync(dir).isDirectory()
   through.obj (file, enc, next) ->
     if file.isNull()
       return @emit 'error',
