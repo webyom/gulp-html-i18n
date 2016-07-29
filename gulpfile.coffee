@@ -31,6 +31,9 @@ gulp.task 'inline', ->
       inline: 'en'
     .pipe gulp.dest('example/dest/inline')
 
+
+gulp.task 'new vesion check', ->
+
 #
 # Demonstrates creating language specific subdirectories, rather than
 # creating suffixed files
