@@ -9,6 +9,7 @@ mustache = require 'mustache'
 
 EOL               = '\n'
 defaultLangRegExp = /\${{ ?([\w\-\.]+) ?}}\$/g
+defaultDelimiters = ['${{','}}$']
 defaultRenderEngine = 'regex'
 supportedType     = ['.js', '.json']
 
@@ -70,9 +71,10 @@ regexReplaceProperties = (langRegExp, content, properties, opt, lv) ->
 #
 # Renders using Mustache
 #
-mustacheReplaceProperties = (langRegExp, content, properties, opt, lv) ->
-  mustache.Context.prototype.opt = opt;
-  mustache.Context.prototype.handleUndefined = handleUndefined;
+mustacheReplaceProperties = (delimiters, content, properties, opt, lv) ->
+  mustache.Context.prototype.opt = opt
+  mustache.Context.prototype.handleUndefined = handleUndefined
+  mustache.tags = delimiters
 
   content = mustache.render content, properties
 
@@ -83,11 +85,12 @@ replaceProperties = (content, properties, opt, lv) ->
   lv = lv || 1
   langRegExp = opt.langRegExp || defaultLangRegExp
   renderEngine = opt.renderEngine || defaultRenderEngine
+  delimiters = opt.delimiters || defaultDelimiters
   if not properties
     return content
 
   if renderEngine == 'mustache'
-    mustacheReplaceProperties langRegExp, content, properties, opt, lv
+    mustacheReplaceProperties delimiters, content, properties, opt, lv
   else if renderEngine == 'regex'
     regexReplaceProperties langRegExp, content, properties, opt, lv
 
@@ -196,9 +199,22 @@ getLangResource = (->
       )
 )()
 
+createRegExpFromDelimiters = (delimiters) ->
+  specialCharactersRegEx = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g
+  leftDelimiter = delimiters[0].replace specialCharactersRegEx, "\\$&"
+  rightDelimiter = delimiters[1].replace specialCharactersRegEx, "\\$&"
+
+  new RegExp(leftDelimiter+' ?([\\w\\-\\.]+) ?'+rightDelimiter,'g')
+
 module.exports = (opt = {}) ->
   if not opt.langDir
     throw new gutil.PluginError('gulp-html-i18n', 'Please specify langDir')
+
+  if opt.delimiters && 'array' == typeof opt.delimiters
+    throw new gutil.PluginError('gulp-html-i18n', 'Delimiters must be an array')
+
+  if opt.delimiters && not opt.langRegExp
+    opt.langRegExp = createRegExpFromDelimiters opt.delimiters
 
   runId = Math.random()
   langDir = path.resolve process.cwd(), opt.langDir
