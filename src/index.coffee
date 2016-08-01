@@ -53,7 +53,7 @@ handleUndefined = (propName, opt) ->
 #
 # Renders using Regex
 #
-regexReplaceProperties = (langRegExp, content, properties, opt, lv) ->
+regexReplaceProperties = (langRegExp, delimiters, content, properties, opt, lv) ->
   content.replace langRegExp, (full, propName) ->
     res = getProperty propName, properties, opt
     if typeof res isnt 'string'
@@ -71,12 +71,16 @@ regexReplaceProperties = (langRegExp, content, properties, opt, lv) ->
 #
 # Renders using Mustache
 #
-mustacheReplaceProperties = (delimiters, content, properties, opt, lv) ->
+mustacheReplaceProperties = (langRegExp, delimiters, content, properties, opt, lv) ->
   mustache.Context.prototype.opt = opt
   mustache.Context.prototype.handleUndefined = handleUndefined
   mustache.tags = delimiters
 
   content = mustache.render content, properties
+
+engines =
+  regex : regexReplaceProperties
+  mustache : mustacheReplaceProperties
 
 #
 # Does the actual work of substituting tags for definitions
@@ -89,10 +93,7 @@ replaceProperties = (content, properties, opt, lv) ->
   if not properties
     return content
 
-  if renderEngine == 'mustache'
-    mustacheReplaceProperties delimiters, content, properties, opt, lv
-  else if renderEngine == 'regex'
-    regexReplaceProperties langRegExp, content, properties, opt, lv
+  engines[renderEngine] langRegExp, delimiters, content, properties, opt, lv
 
 #
 # Load the definitions for all languages
@@ -212,6 +213,10 @@ module.exports = (opt = {}) ->
 
   if opt.delimiters && 'array' == typeof opt.delimiters
     throw new gutil.PluginError('gulp-html-i18n', 'Delimiters must be an array')
+
+  if opt.renderEngine && !engines[opt.renderEngine]
+    console.log(engines)
+    throw new gutil.PluginError('gulp-html-i18n', 'Render engine `'+ opt.renderEngine+'` is not supported. Please use `regex` or `mustache`')
 
   if opt.delimiters && not opt.langRegExp
     opt.langRegExp = createRegExpFromDelimiters opt.delimiters
@@ -429,3 +434,6 @@ module.exports.validateJsonConsistence = (opt = {}) ->
         compare obj, compareObj, compareFilePath, ''
     @push file
     next()
+
+module.exports.engines = engines
+module.exports.handleUndefined = handleUndefined
