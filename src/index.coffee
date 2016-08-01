@@ -1,14 +1,27 @@
-Q       = require 'q'
-fs      = require 'fs'
-path    = require 'path'
-async   = require 'async'
-gutil   = require 'gulp-util'
-through = require 'through2'
-extend  = require 'extend'
+Q        = require 'q'
+fs       = require 'fs'
+path     = require 'path'
+async    = require 'async'
+gutil    = require 'gulp-util'
+through  = require 'through2'
+extend   = require 'extend'
+mustache = require 'mustache'
 
 EOL               = '\n'
 defaultLangRegExp = /\${{ ?([\w\-\.]+) ?}}\$/g
+defaultRenderEngine = 'regex'
 supportedType     = ['.js', '.json']
+
+#
+# Add error handling to mustache
+#
+mustache.Context.prototype._lookup = mustache.Context.prototype.lookup
+mustache.Context.prototype.lookup = (name) ->
+  value = this._lookup name
+
+  if value == null || !value
+    this.handleUndefined name, this.opt
+  value
 
 #
 # Convert a property name into a reference to the definition
@@ -34,16 +47,12 @@ handleUndefined = (propName, opt) ->
   if opt.failOnMissing
     throw "#{propName} not found in definition file!"
   else
-    console.warn "#{propName} not found in definition file!"
+    gutil.log gutil.colors.red "#{propName} not found in definition file!"
 
 #
-# Does the actual work of substituting tags for definitions
+# Renders using Regex
 #
-replaceProperties = (content, properties, opt, lv) ->
-  lv = lv || 1
-  langRegExp = opt.langRegExp || defaultLangRegExp
-  if not properties
-    return content
+regexReplaceProperties = (langRegExp, content, properties, opt, lv) ->
   content.replace langRegExp, (full, propName) ->
     res = getProperty propName, properties, opt
     if typeof res isnt 'string'
@@ -55,8 +64,32 @@ replaceProperties = (content, properties, opt, lv) ->
       if lv > 3
         res = '**' + propName + '**'
       else
-        res = replaceProperties res, properties, opt, lv + 1
+        res = regexReplaceProperties res, properties, opt, lv + 1
     res
+
+#
+# Renders using Mustache
+#
+mustacheReplaceProperties = (langRegExp, content, properties, opt, lv) ->
+  mustache.Context.prototype.opt = opt;
+  mustache.Context.prototype.handleUndefined = handleUndefined;
+
+  content = mustache.render content, properties
+
+#
+# Does the actual work of substituting tags for definitions
+#
+replaceProperties = (content, properties, opt, lv) ->
+  lv = lv || 1
+  langRegExp = opt.langRegExp || defaultLangRegExp
+  renderEngine = opt.renderEngine || defaultRenderEngine
+  if not properties
+    return content
+
+  if renderEngine == 'mustache'
+    mustacheReplaceProperties langRegExp, content, properties, opt, lv
+  else if renderEngine == 'regex'
+    regexReplaceProperties langRegExp, content, properties, opt, lv
 
 #
 # Load the definitions for all languages
