@@ -200,6 +200,7 @@ module.exports = (opt = {}) ->
   if not opt.langDir
     throw new gutil.PluginError('gulp-html-i18n', 'Please specify langDir')
 
+  runId = Math.random()
   langDir = path.resolve process.cwd(), opt.langDir
   seperator = opt.seperator || '-'
   through.obj (file, enc, next) ->
@@ -213,12 +214,13 @@ module.exports = (opt = {}) ->
 
     getLangResource(langDir, opt).then(
       (langResource) =>
-        if file._lang_
+        if file._lang_ && file.runId == runId
           content = replaceProperties file.contents.toString(),
             extend({}, langResource[file._lang_], {_lang_: file._lang_, _default_lang_: opt.defaultLang || ''}), opt
           file.contents = new Buffer content
           @push file
         else
+          file.runId = runId;
           langResource.LANG_LIST.forEach (lang) =>
             originPath = file.path
             newFilePath = originPath.replace /\.src\.html$/, '\.html'
