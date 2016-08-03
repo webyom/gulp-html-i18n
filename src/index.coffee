@@ -1,14 +1,28 @@
-Q       = require 'q'
-fs      = require 'fs'
-path    = require 'path'
-async   = require 'async'
-gutil   = require 'gulp-util'
-through = require 'through2'
-extend  = require 'extend'
+Q        = require 'q'
+fs       = require 'fs'
+path     = require 'path'
+async    = require 'async'
+gutil    = require 'gulp-util'
+through  = require 'through2'
+extend   = require 'extend'
+mustache = require 'mustache'
 
 EOL               = '\n'
 defaultLangRegExp = /\${{ ?([\w\-\.]+) ?}}\$/g
+defaultDelimiters = ['${{','}}$']
+defaultRenderEngine = 'regex'
 supportedType     = ['.js', '.json']
+
+#
+# Add error handling to mustache
+#
+mustache.Context.prototype._lookup = mustache.Context.prototype.lookup
+mustache.Context.prototype.lookup = (name) ->
+  value = this._lookup name
+
+  if value == null || !value
+    this.handleUndefined name, this.opt
+  value
 
 #
 # Convert a property name into a reference to the definition
@@ -34,16 +48,12 @@ handleUndefined = (propName, opt) ->
   if opt.failOnMissing
     throw "#{propName} not found in definition file!"
   else
-    console.warn "#{propName} not found in definition file!"
+    gutil.log gutil.colors.red "#{propName} not found in definition file!"
 
 #
-# Does the actual work of substituting tags for definitions
+# Renders using Regex
 #
-replaceProperties = (content, properties, opt, lv) ->
-  lv = lv || 1
-  langRegExp = opt.langRegExp || defaultLangRegExp
-  if not properties
-    return content
+regexReplaceProperties = (langRegExp, delimiters, content, properties, opt, lv) ->
   content.replace langRegExp, (full, propName) ->
     res = getProperty propName, properties, opt
     if typeof res isnt 'string'
@@ -55,8 +65,35 @@ replaceProperties = (content, properties, opt, lv) ->
       if lv > 3
         res = '**' + propName + '**'
       else
-        res = replaceProperties res, properties, opt, lv + 1
+        res = regexReplaceProperties res, properties, opt, lv + 1
     res
+
+#
+# Renders using Mustache
+#
+mustacheReplaceProperties = (langRegExp, delimiters, content, properties, opt, lv) ->
+  mustache.Context.prototype.opt = opt
+  mustache.Context.prototype.handleUndefined = handleUndefined
+  mustache.tags = delimiters
+
+  content = mustache.render content, properties
+
+engines =
+  regex : regexReplaceProperties
+  mustache : mustacheReplaceProperties
+
+#
+# Does the actual work of substituting tags for definitions
+#
+replaceProperties = (content, properties, opt, lv) ->
+  lv = lv || 1
+  langRegExp = opt.langRegExp || defaultLangRegExp
+  renderEngine = opt.renderEngine || defaultRenderEngine
+  delimiters = opt.delimiters || defaultDelimiters
+  if not properties
+    return content
+
+  engines[renderEngine] langRegExp, delimiters, content, properties, opt, lv
 
 #
 # Load the definitions for all languages
@@ -163,10 +200,28 @@ getLangResource = (->
       )
 )()
 
+createRegExpFromDelimiters = (delimiters) ->
+  specialCharactersRegEx = /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g
+  leftDelimiter = delimiters[0].replace specialCharactersRegEx, "\\$&"
+  rightDelimiter = delimiters[1].replace specialCharactersRegEx, "\\$&"
+
+  new RegExp(leftDelimiter+' ?([\\w\\-\\.]+) ?'+rightDelimiter,'g')
+
 module.exports = (opt = {}) ->
   if not opt.langDir
     throw new gutil.PluginError('gulp-html-i18n', 'Please specify langDir')
 
+  if opt.delimiters && 'array' == typeof opt.delimiters
+    throw new gutil.PluginError('gulp-html-i18n', 'Delimiters must be an array')
+
+  if opt.renderEngine && !engines[opt.renderEngine]
+    console.log(engines)
+    throw new gutil.PluginError('gulp-html-i18n', 'Render engine `'+ opt.renderEngine+'` is not supported. Please use `regex` or `mustache`')
+
+  if opt.delimiters && not opt.langRegExp
+    opt.langRegExp = createRegExpFromDelimiters opt.delimiters
+
+  runId = Math.random()
   langDir = path.resolve process.cwd(), opt.langDir
   seperator = opt.seperator || '-'
   through.obj (file, enc, next) ->
@@ -180,12 +235,13 @@ module.exports = (opt = {}) ->
 
     getLangResource(langDir, opt).then(
       (langResource) =>
-        if file._lang_
+        if file._lang_ && file.runId == runId
           content = replaceProperties file.contents.toString(),
             extend({}, langResource[file._lang_], {_lang_: file._lang_, _default_lang_: opt.defaultLang || ''}), opt
           file.contents = new Buffer content
           @push file
         else
+          file.runId = runId;
           langResource.LANG_LIST.forEach (lang) =>
             originPath = file.path
             newFilePath = originPath.replace /\.src\.html$/, '\.html'
@@ -378,3 +434,6 @@ module.exports.validateJsonConsistence = (opt = {}) ->
         compare obj, compareObj, compareFilePath, ''
     @push file
     next()
+
+module.exports.engines = engines
+module.exports.handleUndefined = handleUndefined

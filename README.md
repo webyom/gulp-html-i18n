@@ -107,6 +107,8 @@ Option | Default | Type | Description
 filenameI18n | false | Boolean | If `true`, you can use `${{ xxx }}$` tag in your filename as in the file content, then the translated filename will contain the translated content instead of the language code.
 createLangDirs | false | Boolean | If `true`, instead of translating `index.html` into `index-en.html`, etc, will translate to `en/index.html`, etc.
 defaultLang | undefined | String | If defined and `createLangDirs` is `true`, translate `index.html` into `index.html` with the default language, etc.
+renderEngine | regex | String | If given sets rendering to be done by regex or Mustache (for more functionality)
+delimiters | ['${{','}}$'] | String[] | Can be used instead of `langRegExp`. Required to update mustache engine, langRegExp will not work with mustache
 failOnMissing | false | Boolean | If `true`, any undefined tag found in an HTML file will throw an error. When `false`, missing tags are logged, but the process finishes.
 fallback | undefined | String | If given, will use the provided language as a fallback: For any other language, if a given tag's value is not provided, it will use the fallback language value.
 inline | undefined | String | If given, will use the provided language to create an output file of the same name as input. For example, passing `inline: 'en-US'` for `index.html` will result in `index.html` with English replacements.
