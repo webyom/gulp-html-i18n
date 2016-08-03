@@ -141,19 +141,23 @@ getLangResource = (->
   #
   # e.g. foo.json will create a resource named foo
   #
-  getResource = (langDir) ->
+  getResource = (langDir, res) ->
     Q.Promise (resolve, reject) ->
       if fs.statSync(langDir).isDirectory()
-        res = {}
+        res = res || {}
         fileList = fs.readdirSync langDir
 
         async.each(
           fileList
-          (filePath, cb) ->
+          (fileName, cb) ->
+            filePath = path.resolve langDir, fileName
             if path.extname(filePath) in supportedType
-              filePath = path.resolve langDir, filePath
               res[path.basename(filePath).replace(/\.js(on)?$/, '')] =
                 getResourceFile filePath
+
+            else if fs.statSync(filePath).isDirectory()
+              res[fileName] = {}
+              getResource(filePath, res[fileName])
             cb()
           (err) ->
             return reject err if err
