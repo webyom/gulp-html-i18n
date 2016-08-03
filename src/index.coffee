@@ -153,13 +153,17 @@ getLangResource = (->
             filePath = path.resolve langDir, fileName
             if path.extname(filePath) in supportedType
               try
-                res[path.basename(filePath).replace(/\.js(on)?$/, '')] =
-                getResourceFile filePath
+                fileStem = path.basename(filePath).replace(/\.js(on)?$/, '')
+                fileResource = getResourceFile filePath
+                if res[fileStem]?
+                  extend res[fileStem], fileResource
+                else
+                  res[fileStem] = fileResource
               catch e
                 gutil.log gutil.colors.red e.message
 
             else if fs.statSync(filePath).isDirectory()
-              res[fileName] = {}
+              res[fileName] = res[fileName] || {}
               getResource(filePath, res[fileName])
             cb()
           (err) ->
