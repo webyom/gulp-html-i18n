@@ -6,12 +6,13 @@ gutil    = require 'gulp-util'
 through  = require 'through2'
 extend   = require 'extend'
 mustache = require 'mustache'
+YAML     = require 'yamljs'
 
 EOL               = '\n'
 defaultLangRegExp = /\${{ ?([\w\-\.]+) ?}}\$/g
 defaultDelimiters = ['${{','}}$']
 defaultRenderEngine = 'regex'
-supportedType     = ['.js', '.json']
+supportedType     = ['.js', '.json', '.yaml']
 
 #
 # Add error handling to mustache
@@ -119,6 +120,8 @@ getLangResource = (->
         res = getJsResource(filePath)
       else if path.extname(filePath) is '.json'
         res = getJSONResource(filePath)
+      else if path.extname(filePath) is '.yaml'
+        res = getYAMLResource(filePath)
     catch e
       throw new Error 'Language file "' + filePath + '" syntax error! - ' +
         e.toString()
@@ -135,6 +138,10 @@ getLangResource = (->
   # Parse a JSON file into a resource object
   getJSONResource = (filePath) ->
     define(JSON.parse(fs.readFileSync(filePath).toString()))
+
+  # Parse a YAML file into a resource object
+  getYAMLResource = (filePath) ->
+    define(YAML.parse(fs.readFileSync(filePath).toString()))
 
   #
   # Load a resource file into a dictionary named after the file
@@ -153,7 +160,7 @@ getLangResource = (->
             filePath = path.resolve langDir, fileName
             if path.extname(filePath) in supportedType
               try
-                fileStem = path.basename(filePath).replace(/\.js(on)?$/, '')
+                fileStem = path.basename(filePath).replace(/\.(js|json|yaml)?$/, '')
                 fileResource = getResourceFile filePath
                 if res[fileStem]?
                   extend res[fileStem], fileResource
@@ -226,7 +233,6 @@ module.exports = (opt = {}) ->
     throw new gutil.PluginError('gulp-html-i18n', 'Delimiters must be an array')
 
   if opt.renderEngine && !engines[opt.renderEngine]
-    console.log(engines)
     throw new gutil.PluginError('gulp-html-i18n', 'Render engine `'+ opt.renderEngine+'` is not supported. Please use `regex` or `mustache`')
 
   if opt.delimiters && not opt.langRegExp

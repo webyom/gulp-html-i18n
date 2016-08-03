@@ -37,7 +37,8 @@
     "gulp-util": "^2.2.19",
     "mustache": "^2.2.1",
     "q": "^1.0.1",
-    "through2": "^0.5.1"
+    "through2": "^0.5.1",
+    "yamljs": "^0.2.8"
   },
   "devDependencies": {
     "gulp": "^3.8.5",
