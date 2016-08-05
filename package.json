@@ -30,7 +30,9 @@
   "engines": {
     "node": ">= 0.8.0"
   },
-  "scripts": {},
+  "scripts": {
+    "test":"mocha --compilers coffee:coffee-script/register"
+  },
   "dependencies": {
     "async": "^0.9.0",
     "extend": "^3.0.0",
@@ -41,8 +43,11 @@
     "yamljs": "^0.2.8"
   },
   "devDependencies": {
+    "chai": "^3.5.0",
+    "coffee-script": "^1.7.1",
     "gulp": "^3.8.5",
     "gulp-coffee": "^2.0.1",
-    "coffee-script": "^1.7.1"
+    "mocha": "^3.0.1",
+    "sinon": "^1.17.5"
   }
 }
