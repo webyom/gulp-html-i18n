@@ -28,39 +28,100 @@ describe 'gulp-html-i18n', ->
     afterEach ->
         removeDir()
 
-    it 'basic replacement', (cb) ->
-        createLocaleFiles
-            '/en/new.json': '{ "hello" : "here" }'
+    describe 'basic', ->
+        it 'replacement', (cb) ->
+            createLocaleFiles
+                '/en/new.json': '{ "hello" : "here" }'
 
-        sourceFile = new gutil.File
-            path: 'file.html',
-            contents: new Buffer 'Not there but ${{ new.hello }}$'
+            sourceFile = new gutil.File
+                path: 'file.html',
+                contents: new Buffer 'Not there but ${{ new.hello }}$'
 
-        validator = (file) ->
-            file.path.should.equal 'file-en.html'
-            file.contents.toString().should.equal 'Not there but here'
+            validator = (file) ->
+                file.path.should.equal 'file-en.html'
+                file.contents.toString().should.equal 'Not there but here'
 
-        testTranslation sourceFile, validator, cb
+            testTranslation sourceFile, validator, cb
 
-    it 'basic replacement to folders', (cb) ->
-        createLocaleFiles
-            '/en/new.json': '{ "hello" : "here" }'
-            '/es/new.json': '{ "hello" : "here" }'
+        it 'replacement to folders', (cb) ->
+            createLocaleFiles
+                '/en/new.json': '{ "hello" : "here" }'
+                '/es/new.json': '{ "hello" : "here" }'
 
-        sourceFile = new gutil.File
-            base: '../'
-            path: '../file.html'
-            contents: new Buffer 'Not there but ${{ new.hello }}$'
+            sourceFile = new gutil.File
+                base: '../'
+                path: '../file.html'
+                contents: new Buffer 'Not there but ${{ new.hello }}$'
 
-        i = 0
-        paths = [
-            '../en/file.html',
-            '../es/file.html'
-        ]
+            i = 0
+            paths = [
+                '../en/file.html',
+                '../es/file.html'
+            ]
 
-        validator = (file) =>
-            file.path.should.equal paths[i]
-            i++
+            validator = (file) =>
+                file.path.should.equal paths[i]
+                i++
 
-        testTranslation sourceFile, validator, cb,
-          createLangDirs : true
+            testTranslation sourceFile, validator, cb,
+              createLangDirs : true
+
+        it 'yaml', (cb) ->
+            createLocaleFiles
+                '/en/index.yaml': 'home: where the heart is'
+
+            sourceFile = new gutil.File
+                base: '../'
+                path: '../file.html'
+                contents: new Buffer 'Home is ${{ index.home }}$'
+
+            validator = (file) ->
+                file.contents.toString().should.equal 'Home is where the heart is'
+
+            testTranslation sourceFile, validator, cb
+
+    describe 'regex', ->
+        it 'recursive replacement', (cb) ->
+            createLocaleFiles
+                '/en/mankind.json': '{ "is" : "${{ love.is }}$" }'
+                '/en/love.json': '{ "is" : "one" }'
+
+            sourceFile = new gutil.File
+                base: '../'
+                path: '../file.html'
+                contents: new Buffer 'Mankind is ${{ mankind.is }}$'
+
+            validator = (file) ->
+                file.contents.toString().should.equal 'Mankind is one'
+
+            testTranslation sourceFile, validator, cb
+
+    describe 'mustache', ->
+        it 'basic json', (cb) ->
+            createLocaleFiles
+                '/en/new.json': '{ "hello" : "here" }'
+
+            sourceFile = new gutil.File
+                path: 'file.html',
+                contents: new Buffer 'Not there but ${{ new.hello }}$'
+
+            validator = (file) ->
+                file.path.should.equal 'file-en.html'
+                file.contents.toString().should.equal 'Not there but here'
+
+            testTranslation sourceFile, validator, cb,
+                renderEngine: 'mustache'
+
+        it 'basic loops', (cb) ->
+            createLocaleFiles
+                '/en/contact.json': '{ "links" : ["google","facebook"] }'
+
+            sourceFile = new gutil.File
+                path: 'file.html',
+                contents: new Buffer 'Contact us ${{# contact.links }}$<a>${{ . }}$</a>${{/ contact.links }}$'
+
+            validator = (file) ->
+                file.contents.toString().should.equal 'Contact us <a>google</a><a>facebook</a>'
+
+            testTranslation sourceFile, validator, cb,
+                renderEngine: 'mustache'

@@ -57,16 +57,18 @@ handleUndefined = (propName, opt) ->
 regexReplaceProperties = (langRegExp, delimiters, content, properties, opt, lv) ->
   content.replace langRegExp, (full, propName) ->
     res = getProperty propName, properties, opt
+    shouldBeProcessedAgain = langRegExp.test res
+
     if typeof res isnt 'string'
       if !opt.fallback
         res = '*' + propName + '*'
       else
         res = '${{ ' + propName + ' }}$'
-    else if langRegExp.test res
+    else if shouldBeProcessedAgain
       if lv > 3
         res = '**' + propName + '**'
       else
-        res = regexReplaceProperties res, properties, opt, lv + 1
+        res = regexReplaceProperties langRegExp, delimiters, res, properties, opt, lv + 1
     res
 
 #
