@@ -3,7 +3,7 @@ Internationalize your HTML files with [gulp](http://gulpjs.com/)!
 
 ## Language Definition Files
 
-`gulp-html-i18n` supports two formats for definition fies: JavaScript and JSON
+`gulp-html-i18n` supports three formats for definition files: JavaScript, JSON, and YAML
 
 ### JS
 Given the following in a file named: `lang/en-US/index.js`
@@ -37,6 +37,17 @@ Given the following in a file named: `lang/en-US/index.json`
   "heading": "Welcome!",
   "footer":  "Copyright 2015"
 }
+```
+
+`gulp-html-i18n` will produce an object called `index`. You can then use
+`${{ index.heading }}$` to get a result of "Welcome!".
+
+### YAML
+Given the following in a file named: `lang/en-US/index.yaml`
+
+```yaml
+heading: Welcome!
+footer:  Copyright 2015
 ```
 
 `gulp-html-i18n` will produce an object called `index`. You can then use
@@ -76,6 +87,56 @@ Output:
     <div>Copyright 2015</div>
   <body>
 </html>
+```
+
+## Render Engine
+
+`gulp-html-i18n` supports two renderEngines: regex, [mustache](https://github.com/janl/mustache.js)
+
+### Regex
+
+This is the default and is used either with the langRegExp (the most flexible) or delimiters (easier)
+
+### Mustache
+
+Provides additional support for things like loops and conditionals. [(for full mustache documentation)](https://github.com/janl/mustache.js)
+You **must** used delimiters for mustache, you **cannot** use langRegExp option
+
+en/index.yaml [ Yaml is useful for multiline strings ]
+```yaml
+home:
+    paragraphs:
+        - >
+            First paragraph contents 
+            put together in multiple lines
+        - >
+            Second paragraph
+            also in multiple lines
+        - Third Paragraph
+```
+
+gulpfile.js
+```js
+i18n({
+  langDir: './lang',
+  renderEngine: mustache
+})
+```
+
+index.html
+```html
+<h1>Welcome</h1>
+${{# home.paragraphs }}$
+    <p>${{ . }}$</p>
+${{/ home.paragraphs }}$
+```
+
+Will produce : index-en.html
+```html
+<h1>Welcome</h1>
+<p>First paragraph contents put together in multiple lines</p>
+<p>Second paragraph also in multiple lines</p>
+<p>Third Paragraph</p>
 ```
 
 ## Gulp Usage

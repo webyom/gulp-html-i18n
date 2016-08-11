@@ -6,12 +6,13 @@ gutil    = require 'gulp-util'
 through  = require 'through2'
 extend   = require 'extend'
 mustache = require 'mustache'
+YAML     = require 'yamljs'
 
 EOL               = '\n'
 defaultLangRegExp = /\${{ ?([\w\-\.]+) ?}}\$/g
 defaultDelimiters = ['${{','}}$']
 defaultRenderEngine = 'regex'
-supportedType     = ['.js', '.json']
+supportedType     = ['.js', '.json', '.yaml']
 
 #
 # Add error handling to mustache
@@ -56,16 +57,18 @@ handleUndefined = (propName, opt) ->
 regexReplaceProperties = (langRegExp, delimiters, content, properties, opt, lv) ->
   content.replace langRegExp, (full, propName) ->
     res = getProperty propName, properties, opt
+    shouldBeProcessedAgain = langRegExp.test res
+
     if typeof res isnt 'string'
       if !opt.fallback
         res = '*' + propName + '*'
       else
         res = '${{ ' + propName + ' }}$'
-    else if langRegExp.test res
+    else if shouldBeProcessedAgain
       if lv > 3
         res = '**' + propName + '**'
       else
-        res = regexReplaceProperties res, properties, opt, lv + 1
+        res = regexReplaceProperties langRegExp, delimiters, res, properties, opt, lv + 1
     res
 
 #
@@ -119,6 +122,8 @@ getLangResource = (->
         res = getJsResource(filePath)
       else if path.extname(filePath) is '.json'
         res = getJSONResource(filePath)
+      else if path.extname(filePath) is '.yaml'
+        res = getYAMLResource(filePath)
     catch e
       throw new Error 'Language file "' + filePath + '" syntax error! - ' +
         e.toString()
@@ -136,24 +141,39 @@ getLangResource = (->
   getJSONResource = (filePath) ->
     define(JSON.parse(fs.readFileSync(filePath).toString()))
 
+  # Parse a YAML file into a resource object
+  getYAMLResource = (filePath) ->
+    define(YAML.parse(fs.readFileSync(filePath).toString()))
+
   #
   # Load a resource file into a dictionary named after the file
   #
   # e.g. foo.json will create a resource named foo
   #
-  getResource = (langDir) ->
+  getResource = (langDir, res) ->
     Q.Promise (resolve, reject) ->
       if fs.statSync(langDir).isDirectory()
-        res = {}
+        res = res || {}
         fileList = fs.readdirSync langDir
 
         async.each(
           fileList
-          (filePath, cb) ->
+          (fileName, cb) ->
+            filePath = path.resolve langDir, fileName
             if path.extname(filePath) in supportedType
-              filePath = path.resolve langDir, filePath
-              res[path.basename(filePath).replace(/\.js(on)?$/, '')] =
-                getResourceFile filePath
+              try
+                fileStem = path.basename(filePath).replace(/\.(js|json|yaml)?$/, '')
+                fileResource = getResourceFile filePath
+                if res[fileStem]?
+                  extend res[fileStem], fileResource
+                else
+                  res[fileStem] = fileResource
+              catch e
+                gutil.log gutil.colors.red e.message
+
+            else if fs.statSync(filePath).isDirectory()
+              res[fileName] = res[fileName] || {}
+              getResource(filePath, res[fileName])
             cb()
           (err) ->
             return reject err if err
@@ -215,7 +235,6 @@ module.exports = (opt = {}) ->
     throw new gutil.PluginError('gulp-html-i18n', 'Delimiters must be an array')
 
   if opt.renderEngine && !engines[opt.renderEngine]
-    console.log(engines)
     throw new gutil.PluginError('gulp-html-i18n', 'Render engine `'+ opt.renderEngine+'` is not supported. Please use `regex` or `mustache`')
 
   if opt.delimiters && not opt.langRegExp
