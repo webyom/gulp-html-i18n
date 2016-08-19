@@ -18,12 +18,16 @@ supportedType     = ['.js', '.json', '.yaml']
 # Add error handling to mustache
 #
 mustache.Context.prototype._lookup = mustache.Context.prototype.lookup
-mustache.Context.prototype.lookup = (name) ->
-  value = this._lookup name
+wrapMustacheLookUp = ->
+  mustache.Context.prototype.lookup = (name) ->
+    value = this._lookup name
 
-  if value == null || !value
-    this.handleUndefined name, this.opt
-  value
+    if value == null || !value
+      this.handleUndefined name, this.opt
+    value
+
+restoreMustacheLookup = ->
+  mustache.Context.prototype.lookup = mustache.Context.prototype._lookup
 
 #
 # Convert a property name into a reference to the definition
@@ -47,7 +51,7 @@ getProperty = (propName, properties, opt) ->
 #
 handleUndefined = (propName, opt) ->
   if opt.failOnMissing
-    throw "#{propName} not found in definition file!"
+    throw new Error "#{propName} not found in definition file!"
   else
     gutil.log gutil.colors.red "#{propName} not found in definition file!"
 
@@ -240,6 +244,9 @@ module.exports = (opt = {}) ->
   if opt.delimiters && not opt.langRegExp
     opt.langRegExp = createRegExpFromDelimiters opt.delimiters
 
+  if opt.renderEngine == 'mustache'
+    wrapMustacheLookUp()
+
   runId = Math.random()
   langDir = path.resolve process.cwd(), opt.langDir
   seperator = opt.seperator || '-'
@@ -335,7 +342,10 @@ module.exports = (opt = {}) ->
         next()
       (err) =>
         @emit 'error', new gutil.PluginError('gulp-html-i18n', err)
-    ).done()
+    ).done( () ->
+      if opt.renderEngine == 'mustache'
+        restoreMustacheLookup()
+    )
 
 module.exports.restorePath = () ->
   through.obj (file, enc, next) ->
