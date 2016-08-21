@@ -125,3 +125,5 @@ describe 'gulp-html-i18n', ->
 
             testTranslation sourceFile, validator, cb,
                 renderEngine: 'mustache'
+
+        it 'throws error if not defined and fail on missing'
