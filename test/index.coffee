@@ -43,22 +43,6 @@ describe 'gulp-html-i18n', ->
 
             testTranslation sourceFile, validator, cb
 
-        it 'replacement (trailing slash & windows)', (cb) ->
-            createLocaleFiles
-                '/en/new.json': '{ "hello" : "here" }'
-
-            sourceFile = new gutil.File
-                path: 'C:\\Projects\\Project\\src\\pages\\index.html',
-                base: 'C:\\Projects\\Project\\src\\pages'
-                contents: new Buffer 'Not there but ${{ new.hello }}$'
-
-            validator = (file) ->
-                file.path.should.equal 'C:\\Projects\\Project\\src\\pages/en/index.html'
-                file.contents.toString().should.equal 'Not there but here'
-
-            testTranslation sourceFile, validator, cb,
-                createLangDirs : true
-
         it 'replacement to folders', (cb) ->
             createLocaleFiles
                 '/en/new.json': '{ "hello" : "here" }'

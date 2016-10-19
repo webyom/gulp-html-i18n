@@ -259,9 +259,6 @@ module.exports = (opt = {}) ->
       return @emit 'error',
         new gutil.PluginError('gulp-html-i18n', 'Streams not supported')
 
-    if file.base && file.base.slice(-1) != '/'
-      file.base += '/'
-
     getLangResource(langDir, opt).then(
       (langResource) =>
         if file._lang_ && file.runId == runId
