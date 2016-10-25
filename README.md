@@ -57,7 +57,7 @@ footer:  Copyright 2015
 To use either of the examples from above, replace the text in your HTML files
 with a formatted tag: `${{ library.tag.name }}$`
 
-`${{ _lang_ }}$` and `${{ _default_lang_ }}$` are two special markups, stand for curreny file language and the `defaultLang` option.
+`${{ _lang_ }}$`, `${{ _langs_ }}$`, and `${{ _default_lang_ }}$` are three special markups, stand for current file language, all file languages, and the `defaultLang` option.
 
 ### Example: index.html
 
