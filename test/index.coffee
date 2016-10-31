@@ -126,4 +126,22 @@ describe 'gulp-html-i18n', ->
             testTranslation sourceFile, validator, cb,
                 renderEngine: 'mustache'
 
+        it '_langs_', (cb) ->
+            createLocaleFiles
+                '/en/new.json': '{ "hello" : "here" }'
+                '/es/new.json': '{ "hello" : "here" }'
+                '/fr/new.json': '{ "hello" : "here" }'
+
+            sourceFile = new gutil.File
+                base: '../'
+                path: '../file.html'
+                contents: new Buffer '${{#_langs_}}$${{.}}$${{/_langs_}}$'
+
+
+            validator = (file) =>
+                file.contents.toString().should.equal 'enesfr'
+
+            testTranslation sourceFile, validator, cb,
+                renderEngine: 'mustache'
+
         it 'throws error if not defined and fail on missing'

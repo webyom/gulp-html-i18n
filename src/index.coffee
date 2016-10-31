@@ -261,14 +261,15 @@ module.exports = (opt = {}) ->
 
     getLangResource(langDir, opt).then(
       (langResource) =>
+        _langs_ = langResource.LANG_LIST
         if file._lang_ && file.runId == runId
           content = replaceProperties file.contents.toString(),
-            extend({}, langResource[file._lang_], {_lang_: file._lang_, _default_lang_: opt.defaultLang || ''}), opt
+            extend({}, langResource[file._lang_], {_lang_: file._lang_, _langs_: _langs_, _default_lang_: opt.defaultLang || ''}), opt
           file.contents = new Buffer content
           @push file
         else
           file.runId = runId;
-          langResource.LANG_LIST.forEach (lang) =>
+          _langs_.forEach (lang) =>
             originPath = file.path
             newFilePath = originPath.replace /\.src\.html$/, '\.html'
 
@@ -280,7 +281,7 @@ module.exports = (opt = {}) ->
               newFilePath = file.base + lang + '/' + newFilePath.slice(file.base.length)
               if opt.filenameI18n
                 newFilePath = replaceProperties newFilePath,
-                  extend({}, langResource[lang], {_lang_: lang, _default_lang_: opt.defaultLang || ''}), opt
+                  extend({}, langResource[lang], {_lang_: lang, _langs_: _langs_, _default_lang_: opt.defaultLang || ''}), opt
             #
             # If the option `inline` is set, replace the tags in the same source file,
             # rather than creating a new one
@@ -290,7 +291,7 @@ module.exports = (opt = {}) ->
             else
               if opt.filenameI18n
                 newFilePath = replaceProperties newFilePath,
-                  extend({}, langResource[lang], {_lang_: lang, _default_lang_: opt.defaultLang || ''}), opt
+                  extend({}, langResource[lang], {_lang_: lang, _langs_: _langs_, _default_lang_: opt.defaultLang || ''}), opt
               else
                 newFilePath = gutil.replaceExtension(
                   newFilePath,
@@ -298,11 +299,11 @@ module.exports = (opt = {}) ->
                 )
 
             content = replaceProperties file.contents.toString(),
-              extend({}, langResource[lang], {_lang_: lang, _default_lang_: opt.defaultLang || ''}), opt
+              extend({}, langResource[lang], {_lang_: lang, _langs_: _langs_, _default_lang_: opt.defaultLang || ''}), opt
 
             if opt.fallback
               content = replaceProperties content,
-                extend({}, langResource[opt.fallback], {_lang_: lang, _default_lang_: opt.defaultLang || ''}), opt
+                extend({}, langResource[opt.fallback], {_lang_: lang, _langs_: _langs_, _default_lang_: opt.defaultLang || ''}), opt
 
             if opt.trace
               tracePath = path.relative(process.cwd(), originPath)
