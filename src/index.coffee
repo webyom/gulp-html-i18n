@@ -278,7 +278,9 @@ module.exports = (opt = {}) ->
             # to path/lang/foo.html. Otherwise, save to path/foo-lang.html
             #
             if opt.createLangDirs
-              newFilePath = file.base + lang + '/' + newFilePath.slice(file.base.length)
+              if file.base?.slice(-1) != path.sep
+                file.base += path.sep
+              newFilePath = file.base + lang + path.sep + newFilePath.slice(file.base.length)
               if opt.filenameI18n
                 newFilePath = replaceProperties newFilePath,
                   extend({}, langResource[lang], {_lang_: lang, _langs_: _langs_, _default_lang_: opt.defaultLang || ''}), opt
@@ -450,16 +452,16 @@ module.exports.validateJsonConsistence = (opt = {}) ->
       keyStack.pop()
 
     filePath = file.path
-    tmp = filePath.slice(langDir.length).replace(/^\/+/, '').split('/')
+    tmp = filePath.slice(langDir.length).replace(/^[\/\\]+/, '').split(path.sep)
     currentLang = tmp.shift()
     if currentLang in langList
-      langFileName = tmp.join '/'
+      langFileName = tmp.join path.sep
       compareLangList = langList.filter (lang) ->
         lang != currentLang
       obj = require filePath
       keyStack = []
       compareLangList.forEach (lang) ->
-        compareFilePath = [langDir, lang, langFileName].join '/'
+        compareFilePath = [langDir, lang, langFileName].join path.sep
         compareObj = require compareFilePath
         compare obj, compareObj, compareFilePath, ''
     @push file
