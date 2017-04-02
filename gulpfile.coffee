@@ -99,7 +99,7 @@ gulp.task 'filename-i18n', ->
     .pipe gulp.dest('example/dest/filename-i18n')
 
 #
-# Demonstrates filename-i18n
+# Demonstrates jsfile
 #
 gulp.task 'jsfile', ->
   gulp.src('example/src/index.js')
@@ -107,6 +107,15 @@ gulp.task 'jsfile', ->
       langDir: 'example/src/lang'
       trace: true
     .pipe gulp.dest('example/dest')
+
+#
+# Demonstrates resolve-reference
+#
+gulp.task 'jsfile', ->
+  gulp.src('example/src/resolve-reference/**/*.js')
+    .pipe i18n.resolveReference
+      langDir: 'example/src/resolve-reference'
+    .pipe gulp.dest('example/dest/resolve-reference')
 
 #
 # Calling `gulp` will compile

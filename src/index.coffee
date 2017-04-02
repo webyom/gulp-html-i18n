@@ -350,14 +350,63 @@ module.exports = (opt = {}) ->
         restoreMustacheLookup()
     )
 
+module.exports.resolveReference = (opt = {}) ->
+  if not opt.langDir
+    throw new gutil.PluginError('gulp-html-i18n:resolveReference', 'Please specify langDir')
+
+  if opt.delimiters && 'array' == typeof opt.delimiters
+    throw new gutil.PluginError('gulp-html-i18n:resolveReference', 'Delimiters must be an array')
+
+  if opt.renderEngine && !engines[opt.renderEngine]
+    throw new gutil.PluginError('gulp-html-i18n:resolveReference', 'Render engine `'+ opt.renderEngine+'` is not supported. Please use `regex` or `mustache`')
+
+  if opt.delimiters && not opt.langRegExp
+    opt.langRegExp = createRegExpFromDelimiters opt.delimiters
+
+  if opt.renderEngine == 'mustache'
+    wrapMustacheLookUp()
+
+  langDir = path.resolve process.cwd(), opt.langDir
+  through.obj (file, enc, next) ->
+    if file.isNull()
+      return @emit 'error',
+        new gutil.PluginError('gulp-html-i18n:resolveReference', 'File can\'t be null')
+
+    if file.isStream()
+      return @emit 'error',
+        new gutil.PluginError('gulp-html-i18n:resolveReference', 'Streams not supported')
+
+    relPath = path.relative langDir, file.path
+
+    if relPath.indexOf('.') is 0
+      return @emit 'error',
+        new gutil.PluginError('gulp-html-i18n:resolveReference', 'Not language resource file')
+
+    lang = relPath.split('/')[0]
+
+    getLangResource(langDir, opt).then(
+      (langResource) =>
+        _langs_ = langResource.LANG_LIST
+        content = replaceProperties file.contents.toString(),
+          extend({}, langResource[lang], {_lang_: lang, _langs_: _langs_, _default_lang_: opt.defaultLang || ''}), opt
+        file.contents = new Buffer content
+        @push file
+        next()
+      (err) =>
+        @emit 'error', new gutil.PluginError('gulp-html-i18n', err)
+    ).done( () ->
+      if opt.renderEngine == 'mustache'
+        restoreMustacheLookup()
+    )
+
 module.exports.restorePath = () ->
   through.obj (file, enc, next) ->
     if file.isNull()
       return @emit 'error',
-        new gutil.PluginError('gulp-html-i18n', 'File can\'t be null')
+        new gutil.PluginError('gulp-html-i18n:restorePath', 'File can\'t be null')
     if file.isStream()
       return @emit 'error',
-        new gutil.PluginError('gulp-html-i18n', 'Streams not supported')
+        new gutil.PluginError('gulp-html-i18n:restorePath', 'Streams not supported')
     if file._originPath_
       file.path = file._originPath_
     if file.sourceMap
@@ -369,10 +418,10 @@ module.exports.i18nPath = () ->
   through.obj (file, enc, next) ->
     if file.isNull()
       return @emit 'error',
-        new gutil.PluginError('gulp-html-i18n', 'File can\'t be null')
+        new gutil.PluginError('gulp-html-i18n:i18nPath', 'File can\'t be null')
     if file.isStream()
       return @emit 'error',
-        new gutil.PluginError('gulp-html-i18n', 'Streams not supported')
+        new gutil.PluginError('gulp-html-i18n:i18nPath', 'Streams not supported')
     if file._i18nPath_
       file.path = file._i18nPath_
     @push file
@@ -382,10 +431,10 @@ module.exports.jsonSortKey = (opt = {}) ->
   through.obj (file, enc, next) ->
     if file.isNull()
       return @emit 'error',
-        new gutil.PluginError('gulp-html-i18n', 'File can\'t be null')
+        new gutil.PluginError('gulp-html-i18n:jsonSortKey', 'File can\'t be null')
     if file.isStream()
       return @emit 'error',
-        new gutil.PluginError('gulp-html-i18n', 'Streams not supported')
+        new gutil.PluginError('gulp-html-i18n:jsonSortKey', 'Streams not supported')
 
     convert = (obj, objKey) ->
       keyStack.push objKey
@@ -417,7 +466,7 @@ module.exports.jsonSortKey = (opt = {}) ->
 
 module.exports.validateJsonConsistence = (opt = {}) ->
   if not opt.langDir
-    throw new gutil.PluginError('gulp-html-i18n', 'Please specify langDir')
+    throw new gutil.PluginError('gulp-html-i18n:validateJsonConsistence', 'Please specify langDir')
 
   langDir = path.resolve process.cwd(), opt.langDir
   langList = fs.readdirSync langDir
@@ -427,16 +476,16 @@ module.exports.validateJsonConsistence = (opt = {}) ->
   through.obj (file, enc, next) ->
     if file.isNull()
       return @emit 'error',
-        new gutil.PluginError('gulp-html-i18n', 'File can\'t be null')
+        new gutil.PluginError('gulp-html-i18n:validateJsonConsistence', 'File can\'t be null')
     if file.isStream()
       return @emit 'error',
-        new gutil.PluginError('gulp-html-i18n', 'Streams not supported')
+        new gutil.PluginError('gulp-html-i18n:validateJsonConsistence', 'Streams not supported')
 
     compare = (src, target, targetFilePath, compareKey) =>
       error = () =>
         gutil.log gutil.colors.red '"' + keyStack.join('.') + '" not consistence in files:' + EOL + filePath + EOL + targetFilePath
         @emit 'error',
-          new gutil.PluginError('gulp-html-i18n', 'validateJsonConsistence failed')
+          new gutil.PluginError('gulp-html-i18n:validateJsonConsistence', 'validateJsonConsistence failed')
 
       keyStack.push compareKey
       srcType = typeof src
