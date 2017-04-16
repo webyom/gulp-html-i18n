@@ -8,11 +8,11 @@ extend   = require 'extend'
 mustache = require 'mustache'
 YAML     = require 'yamljs'
 
-EOL               = '\n'
-defaultLangRegExp = /\${{ ?([\w\-\.]+) ?}}\$/g
-defaultDelimiters = ['${{','}}$']
+EOL                 = '\n'
+defaultLangRegExp   = /\${{ ?([\w\-\.]+) ?}}\$/g
+defaultDelimiters   = ['${{','}}$']
 defaultRenderEngine = 'regex'
-supportedType     = ['.js', '.json', '.yaml']
+supportedType       = ['.js', '.json', '.yaml']
 
 #
 # Add error handling to mustache
@@ -59,21 +59,30 @@ handleUndefined = (propName, opt) ->
 # Renders using Regex
 #
 regexReplaceProperties = (langRegExp, delimiters, content, properties, opt, lv) ->
-  content.replace langRegExp, (full, propName) ->
+  objResArr = []
+  content = content.replace langRegExp, (full, propName) ->
     res = getProperty propName, properties, opt
-    shouldBeProcessedAgain = langRegExp.test res
-
     if typeof res isnt 'string'
-      if !opt.fallback
+      if opt._resolveReference and res and typeof(res) is 'object'
+        objResArr.push res
+        res = '__GULP_HTML_I18N_OBJ_RES_' + (objResArr.length - 1)
+      else if !opt.fallback
         res = '*' + propName + '*'
       else
         res = '${{ ' + propName + ' }}$'
-    else if shouldBeProcessedAgain
-      if lv > 3
-        res = '**' + propName + '**'
-      else
-        res = regexReplaceProperties langRegExp, delimiters, res, properties, opt, lv + 1
+    else 
+      shouldBeProcessedAgain = langRegExp.test res
+      if shouldBeProcessedAgain
+        if lv > 3
+          res = '**' + propName + '**'
+        else
+          res = regexReplaceProperties langRegExp, delimiters, res, properties, opt, lv + 1
     res
+  if objResArr.length
+    for i in [0...objResArr.length]
+      res = JSON.stringify objResArr[i]
+      content = content.replace '"__GULP_HTML_I18N_OBJ_RES_' + i + '"', res
+  content
 
 #
 # Renders using Mustache
@@ -229,7 +238,7 @@ createRegExpFromDelimiters = (delimiters) ->
   leftDelimiter = delimiters[0].replace specialCharactersRegEx, "\\$&"
   rightDelimiter = delimiters[1].replace specialCharactersRegEx, "\\$&"
 
-  new RegExp(leftDelimiter+' ?([\\w\\-\\.]+) ?'+rightDelimiter,'g')
+  new RegExp(leftDelimiter + ' ?([\\w\\-\\.]+) ?' + rightDelimiter, 'g')
 
 module.exports = (opt = {}) ->
   if not opt.langDir
@@ -388,7 +397,7 @@ module.exports.resolveReference = (opt = {}) ->
       (langResource) =>
         _langs_ = langResource.LANG_LIST
         content = replaceProperties file.contents.toString(),
-          extend({}, langResource[lang], {_lang_: lang, _langs_: _langs_, _default_lang_: opt.defaultLang || ''}), opt
+          extend({}, langResource[lang], {_lang_: lang, _langs_: _langs_, _default_lang_: opt.defaultLang || ''}), extend({_resolveReference: true}, opt)
         file.contents = new Buffer content
         @push file
         next()
