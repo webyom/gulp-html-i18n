@@ -491,7 +491,7 @@ module.exports.validateJsonConsistence = (opt = {}) ->
       srcType = typeof src
       targetType = typeof target
       if srcType isnt targetType or Array.isArray(src) and not Array.isArray(target)
-        error()
+        return error()
       if Array.isArray src
         src.forEach (item, i) ->
           compare src[i], target[i], targetFilePath, i
