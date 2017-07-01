@@ -22,7 +22,7 @@ wrapMustacheLookUp = ->
   mustache.Context.prototype.lookup = (name) ->
     value = this._lookup name
 
-    if value == null || !value
+    if value == null || value == ''
       this.handleUndefined name, this.opt
     value
 
