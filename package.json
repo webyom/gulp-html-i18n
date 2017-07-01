@@ -31,7 +31,8 @@
     "node": ">= 0.8.0"
   },
   "scripts": {
-    "test": "mocha --compilers coffee:coffee-script/register"
+    "test": "mocha --compilers coffee:coffee-script/register",
+    "build": "gulp"
   },
   "dependencies": {
     "async": "^0.9.0",
