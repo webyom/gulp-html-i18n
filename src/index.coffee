@@ -21,8 +21,9 @@ mustache.Context.prototype._lookup = mustache.Context.prototype.lookup
 wrapMustacheLookUp = ->
   mustache.Context.prototype.lookup = (name) ->
     value = this._lookup name
+    type = typeof(value)
 
-    if value == null || typeof(value) == 'undefined' || isNaN(value) || !isFinite(value)
+    if (value == null || type == 'undefined') || (type == 'number' && !isFinite(value))
       this.handleUndefined name, this.opt
     value
 
@@ -70,7 +71,7 @@ regexReplaceProperties = (langRegExp, delimiters, content, properties, opt, lv) 
         res = '*' + propName + '*'
       else
         res = '${{ ' + propName + ' }}$'
-    else 
+    else
       shouldBeProcessedAgain = langRegExp.test res
       if shouldBeProcessedAgain
         if lv > 3
