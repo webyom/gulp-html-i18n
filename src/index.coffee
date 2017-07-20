@@ -23,7 +23,7 @@ wrapMustacheLookUp = ->
     value = this._lookup name
     type = typeof(value)
 
-    if (value == null || type == 'undefined') || (type == 'number' && !isFinite(value))
+    if value is null or type is 'undefined' or type is 'number' and not isFinite(value)
       this.handleUndefined name, this.opt
     value
 
