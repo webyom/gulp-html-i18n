@@ -273,8 +273,10 @@ module.exports = (opt = {}) ->
       (langResource) =>
         _langs_ = langResource.LANG_LIST
         if file._lang_ && file.runId == runId
+          _filename_ = path.basename file.path
+          _filepath_ = file.path.slice file.base.length
           content = replaceProperties file.contents.toString(),
-            extend({}, langResource[file._lang_], {_lang_: file._lang_, _langs_: _langs_, _default_lang_: opt.defaultLang || ''}), opt
+            extend({}, langResource[file._lang_], {_lang_: file._lang_, _langs_: _langs_, _default_lang_: opt.defaultLang || '', _filename_: _filename_, _filepath_: _filepath_}), opt
           file.contents = new Buffer content
           @push file
         else
@@ -310,12 +312,15 @@ module.exports = (opt = {}) ->
                   seperator + lang + path.extname(originPath)
                 )
 
+            _filename_ = path.basename newFilePath
+            _filepath_ = newFilePath.slice file.base.length
+
             content = replaceProperties file.contents.toString(),
-              extend({}, langResource[lang], {_lang_: lang, _langs_: _langs_, _default_lang_: opt.defaultLang || ''}), opt
+              extend({}, langResource[lang], {_lang_: lang, _langs_: _langs_, _default_lang_: opt.defaultLang || '', _filename_: _filename_, _filepath_: _filepath_}), opt
 
             if opt.fallback
               content = replaceProperties content,
-                extend({}, langResource[opt.fallback], {_lang_: lang, _langs_: _langs_, _default_lang_: opt.defaultLang || ''}), opt
+                extend({}, langResource[opt.fallback], {_lang_: lang, _langs_: _langs_, _default_lang_: opt.defaultLang || '', _filename_: _filename_, _filepath_: _filepath_}), opt
 
             if opt.trace
               tracePath = path.relative(process.cwd(), originPath)
@@ -397,8 +402,10 @@ module.exports.resolveReference = (opt = {}) ->
     getLangResource(langDir, opt).then(
       (langResource) =>
         _langs_ = langResource.LANG_LIST
+        _filename_ = path.basename file.path
+        _filepath_ = file.path.slice file.base.length
         content = replaceProperties file.contents.toString(),
-          extend({}, langResource[lang], {_lang_: lang, _langs_: _langs_, _default_lang_: opt.defaultLang || ''}), extend({_resolveReference: true}, opt)
+          extend({}, langResource[lang], {_lang_: lang, _langs_: _langs_, _default_lang_: opt.defaultLang || '', _filename_: _filename_, _filepath_: _filepath_}), extend({_resolveReference: true}, opt)
         file.contents = new Buffer content
         @push file
         next()
