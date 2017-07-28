@@ -119,7 +119,7 @@ gulpfile.js
 ```js
 i18n({
   langDir: './lang',
-  renderEngine: mustache
+  renderEngine: 'mustache'
 })
 ```
 
