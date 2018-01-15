@@ -1,6 +1,6 @@
 chai = require 'chai'
 should = chai.should()
-gutil = require 'gulp-util'
+Vinyl = require 'vinyl'
 sinon = require 'sinon'
 i18n  = require '../src/index'
 fs = require 'fs-extra'
@@ -33,7 +33,7 @@ describe 'gulp-html-i18n', ->
             createLocaleFiles
                 '/en/new.json': '{ "hello" : "here" }'
 
-            sourceFile = new gutil.File
+            sourceFile = new Vinyl
                 path: 'file.html',
                 contents: new Buffer 'Not there but ${{ new.hello }}$'
 
@@ -48,7 +48,7 @@ describe 'gulp-html-i18n', ->
                 '/en/new.json': '{ "hello" : "here" }'
                 '/es/new.json': '{ "hello" : "here" }'
 
-            sourceFile = new gutil.File
+            sourceFile = new Vinyl
                 base: '../'
                 path: '../file.html'
                 contents: new Buffer 'Not there but ${{ new.hello }}$'
@@ -70,7 +70,7 @@ describe 'gulp-html-i18n', ->
             createLocaleFiles
                 '/en/index.yaml': 'home: where the heart is'
 
-            sourceFile = new gutil.File
+            sourceFile = new Vinyl
                 base: '../'
                 path: '../file.html'
                 contents: new Buffer 'Home is ${{ index.home }}$'
@@ -86,7 +86,7 @@ describe 'gulp-html-i18n', ->
                 '/en/mankind.json': '{ "is" : "${{ love.is }}$" }'
                 '/en/love.json': '{ "is" : "one" }'
 
-            sourceFile = new gutil.File
+            sourceFile = new Vinyl
                 base: '../'
                 path: '../file.html'
                 contents: new Buffer 'Mankind is ${{ mankind.is }}$'
@@ -101,7 +101,7 @@ describe 'gulp-html-i18n', ->
             createLocaleFiles
                 '/en/new.json': '{ "hello" : "here" }'
 
-            sourceFile = new gutil.File
+            sourceFile = new Vinyl
                 path: 'file.html',
                 contents: new Buffer 'Not there but ${{ new.hello }}$'
 
@@ -116,7 +116,7 @@ describe 'gulp-html-i18n', ->
             createLocaleFiles
                 '/en/contact.json': '{ "links" : ["google","facebook"] }'
 
-            sourceFile = new gutil.File
+            sourceFile = new Vinyl
                 path: 'file.html',
                 contents: new Buffer 'Contact us ${{# contact.links }}$<a>${{ . }}$</a>${{/ contact.links }}$'
 
@@ -132,7 +132,7 @@ describe 'gulp-html-i18n', ->
                 '/es/new.json': '{ "hello" : "here" }'
                 '/fr/new.json': '{ "hello" : "here" }'
 
-            sourceFile = new gutil.File
+            sourceFile = new Vinyl
                 base: '../'
                 path: '../file.html'
                 contents: new Buffer '${{#_langs_}}$${{.}}$${{/_langs_}}$'
