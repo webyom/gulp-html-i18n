@@ -3,8 +3,8 @@
   "version": "0.10.0",
   "description": "Html i18n",
   "keywords": [
-    "amd",
-    "dependency",
+    "html",
+    "i18n",
     "gulpplugin"
   ],
   "homepage": "https://github.com/webyom/gulp-html-i18n",
