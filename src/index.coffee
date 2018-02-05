@@ -74,7 +74,7 @@ regexReplaceProperties = (langRegExp, delimiters, content, properties, opt, lv) 
       else if !opt.fallback
         res = '*' + propName + '*'
       else
-        res = '${{ ' + propName + ' }}$'
+        res = delimiters[0] + ' ' + propName + ' ' + delimiters[1]
     else
       shouldBeProcessedAgain = langRegExp.test res
       if shouldBeProcessedAgain
