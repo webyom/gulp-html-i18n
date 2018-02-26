@@ -12,11 +12,29 @@ extend      = require 'extend'
 mustache    = require 'mustache'
 YAML        = require 'yamljs'
 
+CWD                 = process.cwd()
 EOL                 = '\n'
 defaultLangRegExp   = /\${{ ?([\w\-\.]+) ?}}\$/g
 defaultDelimiters   = ['${{','}}$']
 defaultRenderEngine = 'regex'
 supportedType       = ['.js', '.json', '.yaml']
+
+#
+# Get full file base
+#
+resolveFileBase = (fileBase) ->
+  if not path.isAbsolute fileBase
+    fileBase = path.resolve CWD, fileBase
+  if fileBase.slice(-1) isnt path.sep
+    fileBase += path.sep
+  fileBase
+
+#
+# Get file path relative to file base
+#
+getRelativeFilePath = (filePath, fileBase) ->
+  fileBase = resolveFileBase fileBase
+  filePath.slice fileBase.length
 
 #
 # Add error handling to mustache
@@ -249,20 +267,20 @@ module.exports = (opt = {}) ->
   if not opt.langDir
     throw new PluginError('gulp-html-i18n', 'Please specify langDir')
 
-  if opt.delimiters && 'array' == typeof opt.delimiters
+  if opt.delimiters and 'array' is typeof opt.delimiters
     throw new PluginError('gulp-html-i18n', 'Delimiters must be an array')
 
-  if opt.renderEngine && !engines[opt.renderEngine]
+  if opt.renderEngine and !engines[opt.renderEngine]
     throw new PluginError('gulp-html-i18n', 'Render engine `'+ opt.renderEngine+'` is not supported. Please use `regex` or `mustache`')
 
-  if opt.delimiters && not opt.langRegExp
+  if opt.delimiters and not opt.langRegExp
     opt.langRegExp = createRegExpFromDelimiters opt.delimiters
 
-  if opt.renderEngine == 'mustache'
+  if opt.renderEngine is 'mustache'
     wrapMustacheLookUp()
 
   runId = Math.random()
-  langDir = path.resolve process.cwd(), opt.langDir
+  langDir = path.resolve CWD, opt.langDir
   seperator = opt.seperator || '-'
   through.obj (file, enc, next) ->
     if file.isNull()
@@ -276,9 +294,9 @@ module.exports = (opt = {}) ->
     getLangResource(langDir, opt).then(
       (langResource) =>
         _langs_ = langResource.LANG_LIST
-        if file._lang_ && file.runId == runId
+        if file._lang_ and file.runId is runId
           _filename_ = path.basename file.path
-          _filepath_ = file.path.slice file.base.length
+          _filepath_ = getRelativeFilePath file.path, file.base
           content = replaceProperties file.contents.toString(),
             extend({}, langResource[file._lang_], {_lang_: file._lang_, _langs_: _langs_, _default_lang_: opt.defaultLang || '', _filename_: _filename_, _filepath_: _filepath_}), opt
           file.contents = new Buffer content
@@ -294,7 +312,7 @@ module.exports = (opt = {}) ->
             # to path/lang/foo.html. Otherwise, save to path/foo-lang.html
             #
             if opt.createLangDirs
-              newFilePath = path.join file.base, lang, newFilePath.slice(file.base.length)
+              newFilePath = path.join resolveFileBase(file.base), lang, getRelativeFilePath(newFilePath, file.base)
               if opt.filenameI18n
                 newFilePath = replaceProperties newFilePath,
                   extend({}, langResource[lang], {_lang_: lang, _langs_: _langs_, _default_lang_: opt.defaultLang || ''}), opt
@@ -315,7 +333,7 @@ module.exports = (opt = {}) ->
                 )
 
             _filename_ = path.basename newFilePath
-            _filepath_ = newFilePath.slice file.base.length
+            _filepath_ = getRelativeFilePath newFilePath, file.base
 
             content = replaceProperties file.contents.toString(),
               extend({}, langResource[lang], {_lang_: lang, _langs_: _langs_, _default_lang_: opt.defaultLang || '', _filename_: _filename_, _filepath_: _filepath_}), opt
@@ -325,7 +343,7 @@ module.exports = (opt = {}) ->
                 extend({}, langResource[opt.fallback], {_lang_: lang, _langs_: _langs_, _default_lang_: opt.defaultLang || '', _filename_: _filename_, _filepath_: _filepath_}), opt
 
             if opt.trace
-              tracePath = path.relative(process.cwd(), originPath)
+              tracePath = path.relative(CWD, originPath)
               if path.extname(originPath).toLowerCase() in ['.html', '.htm', '.xml']
                 trace = '<!-- trace:' + tracePath + ' -->'
                 if (/(<body[^>]*>)/i).test content
@@ -363,7 +381,7 @@ module.exports = (opt = {}) ->
       (err) =>
         @emit 'error', new PluginError('gulp-html-i18n', err)
     ).done( () ->
-      if opt.renderEngine == 'mustache'
+      if opt.renderEngine is 'mustache'
         restoreMustacheLookup()
     )
 
@@ -371,19 +389,19 @@ module.exports.resolveReference = (opt = {}) ->
   if not opt.langDir
     throw new PluginError('gulp-html-i18n:resolveReference', 'Please specify langDir')
 
-  if opt.delimiters && 'array' == typeof opt.delimiters
+  if opt.delimiters and 'array' is typeof opt.delimiters
     throw new PluginError('gulp-html-i18n:resolveReference', 'Delimiters must be an array')
 
-  if opt.renderEngine && !engines[opt.renderEngine]
+  if opt.renderEngine and !engines[opt.renderEngine]
     throw new PluginError('gulp-html-i18n:resolveReference', 'Render engine `'+ opt.renderEngine+'` is not supported. Please use `regex` or `mustache`')
 
-  if opt.delimiters && not opt.langRegExp
+  if opt.delimiters and not opt.langRegExp
     opt.langRegExp = createRegExpFromDelimiters opt.delimiters
 
-  if opt.renderEngine == 'mustache'
+  if opt.renderEngine is 'mustache'
     wrapMustacheLookUp()
 
-  langDir = path.resolve process.cwd(), opt.langDir
+  langDir = path.resolve CWD, opt.langDir
   through.obj (file, enc, next) ->
     if file.isNull()
       return @emit 'error',
@@ -405,7 +423,7 @@ module.exports.resolveReference = (opt = {}) ->
       (langResource) =>
         _langs_ = langResource.LANG_LIST
         _filename_ = path.basename file.path
-        _filepath_ = file.path.slice file.base.length
+        _filepath_ = getRelativeFilePath file.path, file.base
         content = replaceProperties file.contents.toString(),
           extend({}, langResource[lang], {_lang_: lang, _langs_: _langs_, _default_lang_: opt.defaultLang || '', _filename_: _filename_, _filepath_: _filepath_}), extend({_resolveReference: true}, opt)
         file.contents = new Buffer content
@@ -414,7 +432,7 @@ module.exports.resolveReference = (opt = {}) ->
       (err) =>
         @emit 'error', new PluginError('gulp-html-i18n', err)
     ).done( () ->
-      if opt.renderEngine == 'mustache'
+      if opt.renderEngine is 'mustache'
         restoreMustacheLookup()
     )
 
@@ -487,7 +505,7 @@ module.exports.validateJsonConsistence = (opt = {}) ->
   if not opt.langDir
     throw new PluginError('gulp-html-i18n:validateJsonConsistence', 'Please specify langDir')
 
-  langDir = path.resolve process.cwd(), opt.langDir
+  langDir = path.resolve CWD, opt.langDir
   langList = fs.readdirSync langDir
   langList = langList.filter (lang) ->
   	dir = path.resolve langDir, lang
@@ -525,7 +543,7 @@ module.exports.validateJsonConsistence = (opt = {}) ->
     if currentLang in langList
       langFileName = tmp.join path.sep
       compareLangList = langList.filter (lang) ->
-        lang != currentLang
+        lang isnt currentLang
       obj = require filePath
       keyStack = []
       compareLangList.forEach (lang) ->
