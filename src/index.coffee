@@ -294,9 +294,7 @@ module.exports = (opt = {}) ->
             # to path/lang/foo.html. Otherwise, save to path/foo-lang.html
             #
             if opt.createLangDirs
-              if file.base?.slice(-1) != path.sep
-                file.base += path.sep
-              newFilePath = file.base + lang + path.sep + newFilePath.slice(file.base.length)
+              newFilePath = path.join file.base, lang, newFilePath.slice(file.base.length)
               if opt.filenameI18n
                 newFilePath = replaceProperties newFilePath,
                   extend({}, langResource[lang], {_lang_: lang, _langs_: _langs_, _default_lang_: opt.defaultLang || ''}), opt
