@@ -176,4 +176,4 @@ inline | undefined | String | If given, will use the provided language to create
 langRegExp | /\${{ ?([\w\-\.]+) ?}}\$/g | RegExp | the regular expression used for matching the language tags.
 escapeQuotes | false | Boolean | If `true`, will replace `"` and `'` with `\\"` and `\\'`.
 trace | false | Boolean | If `true`, will place comments in output HTML to show where the translated strings came from
-extendDefination | undefined | function | return an object to extend the language defination
+extendDefination | undefined | Function | return an object to extend the language defination
