@@ -1,0 +1,9 @@
+home:
+  paragraphs:
+    - >
+      First paragraph contents 
+      put together in multiple lines
+    - >
+      Second paragraph
+      also in multiple lines
+    - Third Paragraph
