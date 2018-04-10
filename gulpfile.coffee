@@ -118,7 +118,18 @@ gulp.task 'jsfile', ->
     .pipe gulp.dest('example/dest/resolve-reference')
 
 #
+# Demonstrates mustache renderEngine
+#
+gulp.task 'mustache', ->
+  gulp.src('example/src/mustache.src.html')
+    .pipe i18n
+      langDir: 'example/src/mustache'
+      renderEngine: 'mustache'
+      trace: true
+    .pipe gulp.dest('example/dest')
+
+#
 # Calling `gulp` will compile
 #
 gulp.task 'default', ['compile']
-gulp.task 'example', ['normal', 'inline', 'dirs', 'failure', 'fallback', 'escape', 'commonjs', 'filename-i18n', 'jsfile']
+gulp.task 'example', ['normal', 'inline', 'dirs', 'failure', 'fallback', 'escape', 'commonjs', 'filename-i18n', 'jsfile', 'mustache']
