@@ -126,6 +126,8 @@ gulp.task 'mustache', ->
       langDir: 'example/src/mustache'
       renderEngine: 'mustache'
       trace: true
+      extendDefination: (info) ->
+        {extend: Object.keys(info).join(' ')}
     .pipe gulp.dest('example/dest')
 
 #

@@ -297,8 +297,10 @@ module.exports = (opt = {}) ->
         if file._lang_ and file.runId is runId
           _filename_ = path.basename file.path
           _filepath_ = getRelativeFilePath file.path, file.base
+          fileInfo = {_lang_: file._lang_, _langs_: _langs_, _default_lang_: opt.defaultLang || '', _filename_: _filename_, _filepath_: _filepath_}
+          extDef = if opt.extendDefination then opt.extendDefination(fileInfo) else {}
           content = replaceProperties file.contents.toString(),
-            extend({}, langResource[file._lang_], {_lang_: file._lang_, _langs_: _langs_, _default_lang_: opt.defaultLang || '', _filename_: _filename_, _filepath_: _filepath_}), opt
+            extend(extDef, langResource[file._lang_], fileInfo), opt
           file.contents = new Buffer content
           @push file
         else
@@ -306,6 +308,9 @@ module.exports = (opt = {}) ->
           _langs_.forEach (lang) =>
             originPath = file.path
             newFilePath = originPath.replace /\.src\.html$/, '\.html'
+
+            fileInfo = {_lang_: lang, _langs_: _langs_, _default_lang_: opt.defaultLang || ''}
+            extDef = if opt.extendDefination then opt.extendDefination(fileInfo) else {}
 
             #
             # If the option `createLangDirs` is set, save path/foo.html
@@ -315,7 +320,7 @@ module.exports = (opt = {}) ->
               newFilePath = path.join resolveFileBase(file.base), lang, getRelativeFilePath(newFilePath, file.base)
               if opt.filenameI18n
                 newFilePath = replaceProperties newFilePath,
-                  extend({}, langResource[lang], {_lang_: lang, _langs_: _langs_, _default_lang_: opt.defaultLang || ''}), opt
+                  extend(extDef, langResource[lang], fileInfo), opt
             #
             # If the option `inline` is set, replace the tags in the same source file,
             # rather than creating a new one
@@ -325,7 +330,7 @@ module.exports = (opt = {}) ->
             else
               if opt.filenameI18n
                 newFilePath = replaceProperties newFilePath,
-                  extend({}, langResource[lang], {_lang_: lang, _langs_: _langs_, _default_lang_: opt.defaultLang || ''}), opt
+                  extend(extDef, langResource[lang], fileInfo), opt
               else
                 newFilePath = replaceExt(
                   newFilePath,
@@ -335,12 +340,15 @@ module.exports = (opt = {}) ->
             _filename_ = path.basename newFilePath
             _filepath_ = getRelativeFilePath newFilePath, file.base
 
+            fileInfo = extend {_filename_: _filename_, _filepath_: _filepath_}, fileInfo
+            extDef = if opt.extendDefination then opt.extendDefination(fileInfo) else {}
+
             content = replaceProperties file.contents.toString(),
-              extend({}, langResource[lang], {_lang_: lang, _langs_: _langs_, _default_lang_: opt.defaultLang || '', _filename_: _filename_, _filepath_: _filepath_}), opt
+              extend(extDef, langResource[lang], fileInfo), opt
 
             if opt.fallback
               content = replaceProperties content,
-                extend({}, langResource[opt.fallback], {_lang_: lang, _langs_: _langs_, _default_lang_: opt.defaultLang || '', _filename_: _filename_, _filepath_: _filepath_}), opt
+                extend(extDef, langResource[opt.fallback], fileInfo), opt
 
             if opt.trace
               tracePath = path.relative(CWD, originPath)
@@ -424,8 +432,10 @@ module.exports.resolveReference = (opt = {}) ->
         _langs_ = langResource.LANG_LIST
         _filename_ = path.basename file.path
         _filepath_ = getRelativeFilePath file.path, file.base
+        fileInfo = {_lang_: lang, _langs_: _langs_, _default_lang_: opt.defaultLang || '', _filename_: _filename_, _filepath_: _filepath_}
+        extDef = if opt.extendDefination then opt.extendDefination(fileInfo) else {}
         content = replaceProperties file.contents.toString(),
-          extend({}, langResource[lang], {_lang_: lang, _langs_: _langs_, _default_lang_: opt.defaultLang || '', _filename_: _filename_, _filepath_: _filepath_}), extend({_resolveReference: true}, opt)
+          extend(extDef, langResource[lang], fileInfo), extend({_resolveReference: true}, opt)
         file.contents = new Buffer content
         @push file
         next()
