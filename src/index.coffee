@@ -58,8 +58,12 @@ restoreMustacheLookup = ->
 getProperty = (propName, properties, opt) ->
   tmp = propName.split '.'
   res = properties
+  fallbackRes = opt._fallbackProperties
   while tmp.length and res
-    res = res[tmp.shift()]
+    key = tmp.shift()
+    res = res[key]
+    res = fallbackRes && fallbackRes[key] if res is undefined
+    fallbackRes = fallbackRes && fallbackRes[key]
 
     handleUndefined(propName, opt) if res is undefined
 
@@ -89,10 +93,8 @@ regexReplaceProperties = (langRegExp, delimiters, content, properties, opt, lv) 
       if opt._resolveReference and res and typeof(res) is 'object'
         objResArr.push res
         res = '__GULP_HTML_I18N_OBJ_RES_' + (objResArr.length - 1)
-      else if !opt.fallback
-        res = '*' + propName + '*'
       else
-        res = delimiters[0] + ' ' + propName + ' ' + delimiters[1]
+        res = '*' + propName + '*'
     else
       shouldBeProcessedAgain = langRegExp.test res
       if shouldBeProcessedAgain
@@ -293,6 +295,8 @@ module.exports = (opt = {}) ->
 
     getLangResource(langDir, opt).then(
       (langResource) =>
+        if opt.fallback
+          opt._fallbackProperties = langResource[opt.fallback]
         _langs_ = langResource.LANG_LIST
         if file._lang_ and file.runId is runId
           _filename_ = path.basename file.path
@@ -345,10 +349,6 @@ module.exports = (opt = {}) ->
 
             content = replaceProperties file.contents.toString(),
               extend(extDef, langResource[lang], fileInfo), opt
-
-            if opt.fallback
-              content = replaceProperties content,
-                extend(extDef, langResource[opt.fallback], fileInfo), opt
 
             if opt.trace
               tracePath = path.relative(CWD, originPath)
