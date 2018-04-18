@@ -7,6 +7,7 @@ script:
   - gulp
   - gulp example
   - npm test
+  - npm run report-coverage
 cache:
   directories:
     - node_modules

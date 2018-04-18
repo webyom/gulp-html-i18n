@@ -3,7 +3,7 @@ chai = require 'chai'
 should = chai.should()
 Vinyl = require 'vinyl'
 sinon = require 'sinon'
-i18n  = require '../src/index'
+i18n  = require '../lib/index'
 fs = require 'fs-extra'
 
 CWD = process.cwd()
