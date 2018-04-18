@@ -4,7 +4,6 @@ node_js:
   - 6
 before_script:
   - npm install -g gulp-cli
-  - npm install
 script:
   - gulp
   - gulp example
