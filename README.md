@@ -1,6 +1,8 @@
 # gulp-html-i18n
 Internationalize your HTML files with [gulp](http://gulpjs.com/)!
 
+[![Build Status](https://travis-ci.org/webyom/gulp-html-i18n.svg?branch=master)](https://travis-ci.org/webyom/gulp-html-i18n)
+
 ## Language Definition Files
 
 `gulp-html-i18n` supports three formats for definition files: JavaScript, JSON, and YAML
