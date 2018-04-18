@@ -1,0 +1,14 @@
+language: node_js
+node_js:
+  - node
+  - 6
+before_script:
+  - npm install -g gulp-cli
+  - npm install
+script:
+  - gulp
+  - gulp example
+  - npm test
+cache:
+  directories:
+    - node_modules
