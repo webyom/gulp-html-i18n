@@ -2,6 +2,8 @@
 Internationalize your HTML files with [gulp](http://gulpjs.com/)!
 
 [![Build Status](https://travis-ci.org/webyom/gulp-html-i18n.svg?branch=master)](https://travis-ci.org/webyom/gulp-html-i18n)
+[![codecov](https://codecov.io/gh/webyom/gulp-html-i18n/branch/master/graph/badge.svg)](https://codecov.io/gh/webyom/gulp-html-i18n)
+
 
 ## Language Definition Files
 
