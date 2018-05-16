@@ -58,12 +58,9 @@ restoreMustacheLookup = ->
 getProperty = (propName, properties, opt) ->
   tmp = propName.split '.'
   res = properties
-  fallbackRes = opt._fallbackProperties
   while tmp.length and res
     key = tmp.shift()
     res = res[key]
-    res = fallbackRes && fallbackRes[key] if res is undefined
-    fallbackRes = fallbackRes && fallbackRes[key]
 
     handleUndefined(propName, opt) if res is undefined
 
@@ -131,6 +128,8 @@ replaceProperties = (content, properties, opt, lv) ->
   langRegExp = opt.langRegExp || defaultLangRegExp
   renderEngine = opt.renderEngine || defaultRenderEngine
   delimiters = opt.delimiters || defaultDelimiters
+  if opt.fallback && opt._fallbackProperties
+    properties = extend true, {}, opt._fallbackProperties, properties
   if not properties
     return content
 
