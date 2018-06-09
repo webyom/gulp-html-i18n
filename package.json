@@ -1,6 +1,6 @@
 {
   "name": "gulp-html-i18n",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "description": "Html i18n",
   "keywords": [
     "html",
@@ -55,7 +55,7 @@
     "fs-extra": "^0.30.0",
     "gulp": "^3.8.5",
     "gulp-coffee": "^2.0.1",
-    "mocha": "^3.0.1",
+    "mocha": "^5.2.0",
     "nyc": "^11.6.0",
     "sinon": "^1.17.5"
   }
