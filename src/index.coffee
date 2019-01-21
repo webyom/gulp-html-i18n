@@ -280,7 +280,7 @@ module.exports = (opt = {}) ->
   if opt.renderEngine is 'mustache'
     wrapMustacheLookUp()
 
-  runId = Math.random()
+  runId = opt.runId || Math.random()
   langDir = path.resolve CWD, opt.langDir
   seperator = opt.seperator || '-'
   through.obj (file, enc, next) ->
