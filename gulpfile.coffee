@@ -133,5 +133,5 @@ gulp.task 'mustache', ->
 #
 # Calling `gulp` will compile
 #
-gulp.task 'default', ['compile']
-gulp.task 'example', ['normal', 'inline', 'dirs', 'failure', 'fallback', 'escape', 'commonjs', 'filename-i18n', 'jsfile', 'mustache']
+gulp.task 'default', gulp.series ['compile']
+gulp.task 'example', gulp.series ['normal', 'inline', 'dirs', 'failure', 'fallback', 'escape', 'commonjs', 'filename-i18n', 'jsfile', 'mustache']
